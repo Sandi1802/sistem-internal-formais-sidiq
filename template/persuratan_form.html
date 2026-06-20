@@ -1,0 +1,151 @@
+{% extends "layout.html" %}
+
+{% block title %}Buat Surat - SIDIQ FORMAIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Buat Surat Baru</h1>
+    <a href="{{ url_for('persuratan') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Kembali
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Formulir Generator Surat</h6>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('persuratan_tambah') }}" method="POST">
+            
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label class="fw-bold">Pilih Template Surat</label>
+                    <select name="jenis_surat" id="jenisSurat" class="form-select form-select-lg border-primary" required>
+                        <option value="">-- Pilih Kategori / Template Surat --</option>
+                        <option value="SPR_RUANGAN">Surat Permohonan Peminjaman Ruangan</option>
+                        <option value="SPR_ALAT">Surat Permohonan Peminjaman Alat</option>
+                        <option value="TTD_SERTIF">Surat Pengajuan Tanda Tangan (Sertifikat)</option>
+                        <option value="UNDANGAN">Surat Undangan</option>
+                        <option value="PERIZINAN">Surat Permohonan Perizinan</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <h6 class="fw-bold text-success mb-3">Kop & Header Surat</h6>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Nomor Surat</label>
+                    <input type="text" name="nomor_surat" class="form-control" placeholder="Contoh: 08/SPR/FORMAIS-UTD/II/2026" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Tanggal Pembuatan Surat</label>
+                    <input type="date" name="tanggal_surat" class="form-control" required value="{{ today_date }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Lampiran</label>
+                    <input type="text" name="lampiran" class="form-control" placeholder="Contoh: 1 (Satu) Berkas" value="-">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Perihal / Hal</label>
+                    <input type="text" name="perihal" class="form-control" placeholder="Contoh: Permohonan Peminjaman Ruangan" required>
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label>Tujuan / Kepada Yth.</label>
+                    <input type="text" name="tujuan" class="form-control" placeholder="Contoh: Kepala Bagian SDM Umum" required>
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <h6 class="fw-bold text-success mb-3">Detail Kegiatan / Isi Surat</h6>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label>Nama Kegiatan / Acara</label>
+                    <input type="text" name="nama_kegiatan" class="form-control" placeholder="Contoh: Formais Leadership Camp (FLC)">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Hari / Tanggal Pelaksanaan</label>
+                    <input type="text" name="hari_tanggal" class="form-control" placeholder="Contoh: Sabtu, 04 April 2026">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Waktu Pelaksanaan</label>
+                    <input type="text" name="waktu_kegiatan" class="form-control" placeholder="Contoh: 07.00 S/d 09.00">
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label>Tempat / Lokasi</label>
+                    <input type="text" name="tempat_kegiatan" class="form-control" placeholder="Contoh: Aula Kampus 1 Universitas Teknologi Digital">
+                </div>
+                
+                <!-- Field Khusus Peminjaman Alat (Disembunyikan secara default) -->
+                <div class="col-md-12 mb-3" id="fieldAlat" style="display:none;">
+                    <label>Daftar Alat yang Dipinjam</label>
+                    <textarea name="daftar_alat" class="form-control" rows="3" placeholder="Contoh: 1. mic - 3&#10;2. sound - 1&#10;3. monitor - 1 (Satu per baris dengan format: nama alat - jumlah)"></textarea>
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <h6 class="fw-bold text-success mb-3">Penutup & Tanda Tangan</h6>
+            <div class="row">
+                <!-- Row 1 TTD -->
+                <div class="col-md-4 mb-3">
+                    <label>Tanda Tangan Kiri Atas (Ketupel)</label>
+                    <input type="text" name="ttd1_jabatan" class="form-control form-control-sm mb-1" value="Ketua Pelaksana" placeholder="Jabatan">
+                    <input type="text" name="ttd1_nama" class="form-control form-control-sm mb-1" placeholder="Nama Lengkap">
+                    <input type="text" name="ttd1_nim" class="form-control form-control-sm" placeholder="NIM/NPM">
+                </div>
+                <div class="col-md-4 mb-3 offset-md-4">
+                    <label>Tanda Tangan Kanan Atas (Sekretaris)</label>
+                    <input type="text" name="ttd2_jabatan" class="form-control form-control-sm mb-1" value="Sekretaris" placeholder="Jabatan">
+                    <input type="text" name="ttd2_nama" class="form-control form-control-sm mb-1" placeholder="Nama Lengkap">
+                    <input type="text" name="ttd2_nim" class="form-control form-control-sm" placeholder="NIM/NPM">
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-12"><p class="text-muted small fw-bold">Mengetahui / Menyetujui (Kosongkan jika tidak perlu)</p></div>
+                <!-- Row 2 TTD -->
+                <div class="col-md-4 mb-3">
+                    <label>Kiri Bawah (Ketua Umum)</label>
+                    <input type="text" name="ttd3_jabatan" class="form-control form-control-sm mb-1" value="Ketua Umum" placeholder="Jabatan">
+                    <input type="text" name="ttd3_nama" class="form-control form-control-sm mb-1" placeholder="Nama Lengkap">
+                    <input type="text" name="ttd3_nim" class="form-control form-control-sm" placeholder="NIM/NPM">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>Tengah Bawah (Biro Kemahasiswaan)</label>
+                    <input type="text" name="ttd4_jabatan" class="form-control form-control-sm mb-1" value="Kepala Biro Kemahasiswaan" placeholder="Jabatan">
+                    <input type="text" name="ttd4_nama" class="form-control form-control-sm mb-1" placeholder="Nama Lengkap">
+                    <input type="text" name="ttd4_nim" class="form-control form-control-sm" placeholder="NIP/NIDN">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label>Kanan Bawah (Pihak Eksternal/Lainnya)</label>
+                    <input type="text" name="ttd5_jabatan" class="form-control form-control-sm mb-1" value="Kepala Biro SDM Dan Umum" placeholder="Jabatan">
+                    <input type="text" name="ttd5_nama" class="form-control form-control-sm mb-1" placeholder="Nama Lengkap">
+                    <input type="text" name="ttd5_nim" class="form-control form-control-sm" placeholder="NIP/NIDN">
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="fas fa-save me-1"></i> Generate Surat
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('jenisSurat').addEventListener('change', function() {
+        var tipe = this.value;
+        var fieldAlat = document.getElementById('fieldAlat');
+        
+        if (tipe === 'SPR_ALAT') {
+            fieldAlat.style.display = 'block';
+        } else {
+            fieldAlat.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

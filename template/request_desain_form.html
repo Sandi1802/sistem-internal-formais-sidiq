@@ -1,0 +1,64 @@
+{% extends 'layout.html' %}
+
+{% block title %}SIDIQ - Form Request Desain{% endblock %}
+
+{% block content %}
+<div class="content-header mb-4">
+    <h2 class="fw-bold m-0"><i class="fas fa-palette text-primary me-2"></i> Form Request Desain</h2>
+    <p class="text-muted mt-2">Ajukan kebutuhan desain untuk kegiatan dan keperluan organisasi.</p>
+</div>
+
+<div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+    <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+        <h5 class="fw-bold mb-0">Detail Request</h5>
+    </div>
+    <div class="card-body p-4">
+        <form action="{{ url_for('tambah_request_desain') }}" method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Judul / Nama Kegiatan <span class="text-danger">*</span></label>
+                    <input type="text" name="judul_desain" class="form-control form-control-lg" placeholder="Misal: Pamflet Kajian Jumat" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Jenis Desain <span class="text-danger">*</span></label>
+                    <select name="jenis_desain" class="form-select form-select-lg" required>
+                        <option value="" disabled selected>Pilih jenis desain...</option>
+                        <option value="Feed Instagram">Feed Instagram</option>
+                        <option value="Story Instagram">Story Instagram</option>
+                        <option value="Banner / Spanduk">Banner / Spanduk</option>
+                        <option value="Sertifikat">Sertifikat</option>
+                        <option value="ID Card / Name Tag">ID Card / Name Tag</option>
+                        <option value="Video Reels / TikTok">Video Reels / TikTok</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Tenggat Waktu (Deadline) <span class="text-danger">*</span></label>
+                    <input type="date" name="deadline" class="form-control form-control-lg" required>
+                    <div class="form-text">Usahakan minimal H-3 agar tim media punya cukup waktu pengerjaan.</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Link Materi / Referensi (Google Drive)</label>
+                    <input type="url" name="link_referensi" class="form-control form-control-lg" placeholder="https://drive.google.com/...">
+                    <div class="form-text">Pastikan link bisa diakses (Viewer) oleh siapa saja. Berisi logo, referensi desain, atau teks acara.</div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Deskripsi & Konsep Teks <span class="text-danger">*</span></label>
+                <textarea name="deskripsi" class="form-control" rows="5" placeholder="Tuliskan secara lengkap:&#10;- Nuansa warna yang diinginkan&#10;- Teks/kata-kata yang wajib ada di desain&#10;- Request tambahan lainnya" required></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                <a href="{{ url_for('request_desain_list') }}" class="btn btn-light px-4 py-2" style="border-radius: 8px;">Batal</a>
+                <button type="submit" class="btn btn-primary px-4 py-2 fw-bold" style="border-radius: 8px;">
+                    <i class="fas fa-paper-plane me-2"></i> Ajukan Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

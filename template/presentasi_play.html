@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ pres.judul }} - SIDIQ Presentasi</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Hide scrollbars during presentation */
+        }
+        
+        .slides-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            transform: scale(0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 50px 10vw;
+            box-sizing: border-box;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            z-index: 10;
+        }
+
+        .slide-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #10b981; /* FORMAIS Greenish/Emerald */
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .slide-content {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+            text-align: center;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        /* Styling for simple HTML tags if user used them */
+        .slide-content b, .slide-content strong { color: #f8fafc; }
+        .slide-content ul { text-align: left; display: inline-block; margin-top: 20px;}
+        .slide-content li { margin-bottom: 15px; }
+
+        .slide-image {
+            max-width: 80%;
+            max-height: 50vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            object-fit: contain;
+        }
+
+        /* Two-column layout if both image and text exist */
+        .slide-split {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            width: 100%;
+            max-width: 1400px;
+        }
+        .slide-split > div {
+            flex: 1;
+        }
+        .slide-split .slide-content {
+            text-align: left;
+        }
+        .slide-split .slide-image {
+            max-width: 100%;
+            max-height: 60vh;
+            margin-bottom: 0;
+        }
+
+        /* Controls / Footer */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 10px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+        .controls:hover {
+            opacity: 1;
+        }
+
+        .btn-control {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .btn-control:hover {
+            background: rgba(255,255,255,0.2);
+            color: #10b981;
+        }
+        
+        .progress-text {
+            font-weight: 600;
+            font-size: 16px;
+            min-width: 60px;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .btn-exit {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.5);
+            color: #cbd5e1;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+        }
+        .btn-exit:hover {
+            background: rgba(239, 68, 68, 0.8);
+            color: white;
+            border-color: transparent;
+        }
+        
+        /* Intro Slide Styling */
+        .intro-slide h1 {
+            font-size: 5rem;
+            color: #fff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .intro-slide h3 {
+            color: #10b981;
+            font-weight: 500;
+            font-size: 2rem;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="{{ url_for('presentasi_list') }}" class="btn-exit"><i class="fas fa-times me-2"></i> Keluar</a>
+
+    <div class="slides-container" id="slidesContainer">
+        
+        <!-- Slide 0: Cover / Title Slide -->
+        <div class="slide active intro-slide" id="slide-0">
+            <h1>{{ pres.judul }}</h1>
+            <h3>{{ pres.topik }}</h3>
+            <p style="color: #64748b; margin-top: 50px; font-size: 1.2rem;">SIDIQ Presentasi &bull; Tekan tombol Panah Kanan untuk mulai</p>
+        </div>
+
+        <!-- Dynamic Slides -->
+        {% for s in slides %}
+        <div class="slide" id="slide-{{ loop.index }}">
+            {% if s.gambar and s.konten %}
+                <!-- Mixed content: Image + Text (Side by side) -->
+                <h2 class="slide-title" style="margin-bottom: 40px;">{{ s.judul_slide }}</h2>
+                <div class="slide-split">
+                    <div>
+                        <img src="{{ url_for('static', filename='uploads/presentasi/' + s.gambar) }}" class="slide-image" alt="Slide Image">
+                    </div>
+                    <div class="slide-content">
+                        {{ s.konten | safe }}
+                    </div>
+                </div>
+            {% elif s.gambar %}
+                <!-- Image only -->
+                <h2 class="slide-title">{{ s.judul_slide }}</h2>
+                <img src="{{ url_for('static', filename='uploads/presentasi/' + s.gambar) }}" class="slide-image" alt="Slide Image" style="max-width: 90%; max-height: 65vh;">
+            {% else %}
+                <!-- Text only -->
+                <h2 class="slide-title">{{ s.judul_slide }}</h2>
+                <div class="slide-content">
+                    {{ s.konten | safe }}
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <!-- Slide Akhir -->
+        <div class="slide intro-slide" id="slide-{{ slides|length + 1 }}">
+            <h1>Terima Kasih</h1>
+            <h3>Sesi Diskusi & Tanya Jawab</h3>
+        </div>
+
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button class="btn-control" id="btnPrev" title="Sebelumnya (Panah Kiri)"><i class="fas fa-chevron-left"></i></button>
+        <span class="progress-text" id="progressText">1 / {{ slides|length + 2 }}</span>
+        <button class="btn-control" id="btnNext" title="Selanjutnya (Panah Kanan / Spasi)"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const progressText = document.getElementById('progressText');
+        let currentSlideIndex = 0;
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            // Boundaries
+            if (index < 0) index = 0;
+            if (index >= totalSlides) index = totalSlides - 1;
+            
+            // Remove active from all
+            slides.forEach(s => s.classList.remove('active'));
+            
+            // Add active to current
+            slides[index].classList.add('active');
+            currentSlideIndex = index;
+            
+            // Update Text
+            progressText.innerText = `${currentSlideIndex + 1} / ${totalSlides}`;
+        }
+
+        // Navigation functions
+        function nextSlide() { showSlide(currentSlideIndex + 1); }
+        function prevSlide() { showSlide(currentSlideIndex - 1); }
+
+        // Event Listeners for Buttons
+        document.getElementById('btnNext').addEventListener('click', nextSlide);
+        document.getElementById('btnPrev').addEventListener('click', prevSlide);
+
+        // Event Listeners for Keyboard
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault(); // prevent space scrolling
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Escape') {
+                window.location.href = "{{ url_for('presentasi_list') }}";
+            }
+        });
+        
+        // Init
+        showSlide(0);
+    </script>
+</body>
+</html>

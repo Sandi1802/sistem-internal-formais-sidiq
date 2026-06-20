@@ -1,125 +1,312 @@
 {% extends "layout.html" %}
-{% block title %}Dashboard HC{% endblock %}
+{% block title %}Dashboard — SIDIQ FORMAIS{% endblock %}
 {% block content %}
 <div class="page-header animate-in" style="--delay: 1">
-    <h1>Dashboard HC</h1>
-    <p>Monitoring Penilaian 360° AKHLAK</p>
+    <h1>Dashboard SIDIQ</h1>
+    <p class="text-muted">Ringkasan data organisasi FORMAIS</p>
 </div>
 
+<!-- ===== MODAL DETAIL ANGGOTA PER BIDANG ===== -->
+<div class="modal fade" id="modalAnggotaBidang" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAnggotaBidangLabel">Anggota Bidang</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-group" id="listAnggotaBidang">
+          <!-- diisi otomatis via JS saat pie chart diklik -->
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAPAN PENGUMUMAN (MADING) ===== -->
+<div class="mb-4 animate-in" style="--delay: 1.5;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold m-0"><i class="fas fa-thumbtack text-danger me-2"></i> Papan Pengumuman</h5>
+        {% if session.get('role') in ['HC', 'TIM IT', 'ADMIN', 'SEKRE'] %}
+        <button class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahPengumuman">
+            <i class="fas fa-plus"></i> Buat Pengumuman
+        </button>
+        {% endif %}
+    </div>
+    
+    <div class="row flex-row flex-nowrap overflow-auto pb-2" style="scrollbar-width: thin;">
+        {% for p in pengumuman_list %}
+        <div class="col-10 col-sm-6 col-md-4 col-lg-3 mb-2" style="min-width: 250px;">
+            <div class="card shadow-sm h-100" style="
+                background-color: {% if p.prioritas == 'Tinggi' %}#fee2e2{% elif p.prioritas == 'Sedang' %}#fef3c7{% else %}#e0f2fe{% endif %};
+                border: none;
+                border-top: 30px solid {% if p.prioritas == 'Tinggi' %}#ef4444{% elif p.prioritas == 'Sedang' %}#f59e0b{% else %}#0ea5e9{% endif %};
+                border-bottom-right-radius: 20px;
+                position: relative;
+                transform: rotate({{ [-1, 0, 1, 2, -2]|random }}deg);
+                transition: transform 0.2s;
+            " onmouseover="this.style.transform='rotate(0deg) scale(1.02)'" onmouseout="this.style.transform='rotate({{ [-1, 0, 1, 2, -2]|random }}deg)'">
+                <!-- Pin icon simulation -->
+                <div style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 12px; height: 12px; border-radius: 50%; background: #475569; box-shadow: 2px 2px 5px rgba(0,0,0,0.3);"></div>
+                
+                <div class="card-body">
+                    <h6 class="fw-bold mb-2">{{ p.judul }}</h6>
+                    <p class="small mb-3" style="color: #334155; line-height: 1.4;">{{ p.isi_teks }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <small class="text-muted" style="font-size: 10px;">
+                            <i class="fas fa-user-circle me-1"></i> {{ p.nama_pembuat }}<br>
+                            <i class="fas fa-clock me-1"></i> {{ p.tanggal_dibuat.strftime('%d %b %H:%M') }}
+                        </small>
+                        {% if session.get('role') in ['HC', 'TIM IT', 'ADMIN', 'SEKRE'] %}
+                        <a href="{{ url_for('hapus_pengumuman', id=p.id_pengumuman) }}" class="text-danger" onclick="return confirm('Cabut pengumuman ini?')" title="Hapus"><i class="fas fa-times-circle"></i></a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-muted fst-italic">Belum ada pengumuman hari ini.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Tambah Pengumuman -->
+<div class="modal fade" id="modalTambahPengumuman" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Buat Pengumuman Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('tambah_pengumuman') }}" method="POST">
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Judul Pengumuman</label>
+                <input type="text" name="judul" class="form-control" placeholder="Cth: Jadwal Rapat Dimajukan" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Isi Pesan</label>
+                <textarea name="isi_teks" class="form-control" rows="4" placeholder="Tuliskan detail pengumuman..." required></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Warna Kertas (Prioritas)</label>
+                <select name="prioritas" class="form-select" required>
+                    <option value="Biasa">Biru (Biasa / Info Umum)</option>
+                    <option value="Sedang">Kuning (Sedang / Peringatan)</option>
+                    <option value="Tinggi">Merah (Tinggi / Urgent)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-thumbtack me-1"></i> Tempel di Mading</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== STAT CARDS ===== -->
 <div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-4 animate-in" style="--delay: 2">
+    <div class="col-xl-3 col-md-4 col-6 mb-4 animate-in" style="--delay: 2">
         <div class="card stat-card primary h-100">
             <div class="stat-icon">
                 <i class="fas fa-users"></i>
             </div>
             <div class="stat-info">
-                <div class="stat-label">Total Karyawan</div>
-                <div class="stat-value">{{ total_karyawan }}</div>
+                <div class="stat-label">Data Mahasiswa</div>
+                <div class="stat-value">{{ total_mahasiswa|default(0) }}</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 6px; line-height: 1.4;">
+                    Pengurus: {{ total_pengurus|default(0) }}, Anggota: {{ total_anggota_biasa|default(0) }}, Calon: {{ total_calon|default(0) }}{% if total_magang %}, Magang: {{ total_magang }}{% endif %}
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6 mb-4 animate-in" style="--delay: 3">
-        <div class="card stat-card info h-100">
+    <div class="col-xl-3 col-md-4 col-6 mb-4 animate-in" style="--delay: 3">
+        <div class="card stat-card warning h-100">
             <div class="stat-icon">
-                <i class="fas fa-clipboard-list"></i>
+                <i class="fas fa-boxes"></i>
             </div>
             <div class="stat-info">
-                <div class="stat-label">Kuesioner Aktif</div>
-                <div class="stat-value">{{ total_kuesioner_aktif }}</div>
+                <div class="stat-label">Total Asset (Barang)</div>
+                <div class="stat-value">{{ total_asset|default(0) }}</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 6px; line-height: 1.4;">
+                    Semua Barang Formais
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6 mb-4 animate-in" style="--delay: 4">
+    <div class="col-xl-3 col-md-4 col-6 mb-4 animate-in" style="--delay: 4">
         <div class="card stat-card success h-100">
             <div class="stat-icon">
-                <i class="fas fa-check-circle"></i>
+                <i class="fas fa-envelope-open-text"></i>
             </div>
             <div class="stat-info">
-                <div class="stat-label">Sudah Mengisi</div>
-                <div class="stat-value">{{ total_selesai }}</div>
+                <div class="stat-label">Surat Dibuat</div>
+                <div class="stat-value">{{ surat_dibuat|default(0) }}</div>
             </div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6 mb-4 animate-in" style="--delay: 5">
+    <div class="col-xl-3 col-md-4 col-6 mb-4 animate-in" style="--delay: 5">
+        <div class="card stat-card teal h-100">
+            <div class="stat-icon">
+                <i class="fas fa-project-diagram"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-label">Program Kerja</div>
+                <div class="stat-value">{{ total_proker|default(0) }}</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 6px; line-height: 1.4;">
+                    Belum: {{ proker_belum|default(0) }}, Berjalan: {{ proker_berjalan|default(0) }}, Selesai: {{ proker_selesai|default(0) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-4 col-6 mb-4 animate-in" style="--delay: 6">
+        <div class="card stat-card success h-100">
+            <div class="stat-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-label">Saldo Kas</div>
+                <div class="stat-value" style="font-size:20px;">{{ "Rp {:,.0f}".format(saldo_kas|default(0)).replace(',', '.') }}</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 6px; line-height: 1.4;">
+                    Masuk: {{ "Rp {:,.0f}".format(kas_masuk_total|default(0)).replace(',', '.') }}<br>
+                    Keluar: {{ "Rp {:,.0f}".format(kas_keluar_total|default(0)).replace(',', '.') }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-4 col-6 mb-4 animate-in" style="--delay: 7">
+        <div class="card stat-card info h-100">
+            <div class="stat-icon">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-label">Kas Entrepreneur</div>
+                <div class="stat-value" style="font-size:20px;">{{ "Rp {:,.0f}".format(kas_entrepreneur|default(0)) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-4 col-6 mb-4 animate-in" style="--delay: 8">
         <div class="card stat-card danger h-100">
             <div class="stat-icon">
-                <i class="fas fa-times-circle"></i>
+                <i class="fas fa-palette"></i>
             </div>
             <div class="stat-info">
-                <div class="stat-label">Belum Mengisi</div>
-                <div class="stat-value">{{ total_belum }}</div>
+                <div class="stat-label">Pengajuan Desain</div>
+                <div class="stat-value">{{ req_desain_total|default(0) }}</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 6px; line-height: 1.4;">
+                    Dikerjakan: {{ req_desain_proses|default(0) }}, Selesai: {{ req_desain_selesai|default(0) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-4 col-6 mb-4 animate-in" style="--delay: 9">
+        <div class="card stat-card info h-100">
+            <div class="stat-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-label">Barang Dipinjam</div>
+                <div class="stat-value">{{ barang_dipinjam|default(0) }}</div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ===== GAMIFIKASI LEADERBOARD ===== -->
 <div class="row mb-4">
-    <div class="col-lg-6 mb-4 animate-in" style="--delay: 6">
-        <div class="card h-100" style="background-color: #e0f2fe;">
-            <div class="card-body">
-                <div id="chart-karyawan" style="width:100%; height:400px;"></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6 mb-4 animate-in" style="--delay: 7">
-        <div class="card h-100" style="background-color: #e0f2fe;">
-            <div class="card-header-custom" style="background-color: #e0f2fe; border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <h5 class="m-0 font-weight-bold text-primary">Progress Evaluator (Atasan/Bawahan/Rekan/Diri Sendiri)</h5>
-            </div>
-            <div class="card-body">
-                <div id="chart-penilai" style="width:100%; height:400px;"></div>
+    <div class="col-12 animate-in" style="--delay: 10">
+        <div class="card shadow-sm border-0" style="border-radius: 12px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold m-0" style="color: #b45309;"><i class="fas fa-trophy text-warning me-2"></i> Papan Peringkat (Bulan Ini)
+                        {% if not publish_lb %}
+                        <small class="badge bg-secondary ms-2" style="font-size: 0.5em;"><i class="fas fa-eye-slash"></i> Pribadi</small>
+                        {% endif %}
+                    </h4>
+                    <span class="badge bg-warning text-dark"><i class="fas fa-star me-1"></i> Top 5 Anggota Aktif</span>
+                </div>
+                <div class="d-flex flex-nowrap overflow-auto pb-2" style="scrollbar-width: thin;">
+                    {% for l in leaderboard %}
+                    <div class="mb-2 me-3" style="min-width: 250px;">
+                        <div class="d-flex align-items-center bg-white p-3 shadow-sm h-100" style="border-radius: 10px; border-left: 5px solid {% if loop.index == 1 %}#fbbf24{% elif loop.index == 2 %}#94a3b8{% elif loop.index == 3 %}#b45309{% else %}#e2e8f0{% endif %};">
+                            <div class="me-3 fw-bold" style="font-size: 1.5rem; color: {% if loop.index == 1 %}#fbbf24{% elif loop.index == 2 %}#94a3b8{% elif loop.index == 3 %}#b45309{% else %}#94a3b8{% endif %};">
+                                #{{ loop.index }}
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 150px;" title="{{ l.nama }}">{{ l.nama }}</h6>
+                                <small class="text-muted fw-bold">{{ l.total_poin }} Poin</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="w-100 text-center text-muted mt-3">Belum ada poin yang diberikan bulan ini.</div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ===== CHARTS ROW 1 ===== -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-4 animate-in" style="--delay: 8">
+        <div class="card h-100" style="background-color: #f0fdf4;">
+            <div class="card-body">
+                <div id="chart-anggota-divisi" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4 animate-in" style="--delay: 9">
+        <div class="card h-100" style="background-color: #f0fdf4;">
+            <div class="card-body">
+                <div id="chart-kas" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== QUICK ACTIONS + RECENT ===== -->
 <div class="row">
-    <div class="col-lg-8 mb-4 animate-in" style="--delay: 8">
+    <div class="col-lg-8 mb-4 animate-in" style="--delay: 10">
         <div class="card h-100">
             <div class="card-header-custom">
-                <h5 class="m-0 font-weight-bold text-primary">Progress Pengisian Kuesioner</h5>
+                <h5 class="m-0 font-weight-bold">Aksi Cepat</h5>
             </div>
             <div class="card-body">
-                <h4 class="small font-weight-bold">Tingkat Partisipasi <span class="float-end">{{ persen_pengisian }}%</span></h4>
-                <div class="progress progress-custom mb-4">
-                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ persen_pengisian }}%" aria-valuenow="{{ persen_pengisian }}" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-                
-                <div class="mt-4">
-                    <h5 class="small font-weight-bold mb-3">Aksi Cepat</h5>
-                    <div class="d-flex gap-2">
-                        <a href="{{ url_for('kuesioner') }}" class="btn btn-outline-primary"><i class="fas fa-tasks me-1"></i> Kelola Kuesioner</a>
-                        <form action="{{ url_for('api_hitung_skor', id_kuesioner=1) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-accent"><i class="fas fa-calculator me-1"></i> Hitung Skor</button>
-                        </form>
-                        <a href="{{ url_for('hasil') }}" class="btn btn-primary"><i class="fas fa-chart-bar me-1"></i> Lihat Hasil</a>
-                    </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{{ url_for('anggota_list') }}" class="btn btn-outline-primary"><i class="fas fa-users me-1"></i> Kelola Anggota</a>
+                    <a href="#" class="btn btn-accent"><i class="fas fa-envelope me-1"></i> Buat Surat</a>
+                    <a href="#" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Tambah Proker</a>
+                    <a href="#" class="btn btn-outline-primary"><i class="fas fa-wallet me-1"></i> Catat Keuangan</a>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 mb-4 animate-in" style="--delay: 9">
+    <div class="col-lg-4 mb-4 animate-in" style="--delay: 11">
         <div class="card h-100">
             <div class="card-header-custom">
-                <h5 class="m-0 font-weight-bold text-primary">Aktivitas Terbaru</h5>
+                <h5 class="m-0 font-weight-bold">Aktivitas Terbaru</h5>
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    {% for r in recent %}
+                    {% for r in recent|default([]) %}
                     <li class="list-group-item">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="mb-0 text-sm fw-bold">{{ r.nama }}</h6>
-                                <small class="text-muted">Menilai {{ r.dinilai_nama }} ({{ r.kategori | capitalize }})</small>
+                                <small class="text-muted">{{ r.keterangan }}</small>
                             </div>
-                            <span class="badge badge-status selesai"><i class="fas fa-check"></i> Selesai</span>
+                            <span class="badge bg-success"><i class="fas fa-check"></i></span>
                         </div>
                     </li>
                     {% else %}
                     <li class="list-group-item text-center py-4">
                         <div class="empty-state">
-                            <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
-                            <p class="text-muted mb-0">Belum ada aktivitas</p>
+                            <i class="fas fa-mosque fa-2x mb-2" style="color:#1D9E75;"></i>
+                            <p class="text-muted mb-0">Belum ada aktivitas terbaru</p>
                         </div>
                     </li>
                     {% endfor %}
@@ -137,186 +324,92 @@
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const deptData = {{ karyawan_dept_chart | safe }};
-    const penilaiData = {{ penilai_chart | safe }};
-    
-    // Calculate total for pie chart
-    const totalPegawai = deptData.reduce((acc, curr) => acc + curr.y, 0);
+    var deptData = {{ anggota_dept_chart|default([])|tojson }};
+    // === Fix: pindahkan modal ke elemen fullscreen agar tetap terlihat ===
+var modalAnggotaEl = document.getElementById('modalAnggotaBidang');
+var modalOriginalParent = modalAnggotaEl.parentNode; // simpan parent aslinya (body)
 
-    // Karyawan Pie Chart (Styled like the reference image)
-    Highcharts.chart('chart-karyawan', {
-        chart: {
-            type: 'pie',
-            backgroundColor: '#e0f2fe',
-            style: {
-                fontFamily: 'Inter, sans-serif'
-            }
-        },
-        title: {
-            text: 'KATEGORI PEGAWAI PERUSAHAAN',
-            style: {
-                color: '#0A1931',
-                fontWeight: 'bold',
-                fontSize: '20px'
-            }
-        },
-        subtitle: {
-            text: 'BERDASARKAN DEPARTEMEN',
-            style: {
-                color: '#475569',
-                fontSize: '14px'
-            }
-        },
-        tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b> ({point.y} orang)'
-        },
-        accessibility: {
-            point: {
-                valueSuffix: '%'
-            }
-        },
+document.addEventListener('fullscreenchange', function () {
+    var fsElement = document.fullscreenElement;
+    if (fsElement) {
+        // Lagi masuk fullscreen -> pindahkan modal ke dalam elemen fullscreen
+        fsElement.appendChild(modalAnggotaEl);
+    } else {
+        // Keluar fullscreen -> kembalikan modal ke body
+        modalOriginalParent.appendChild(modalAnggotaEl);
+    }
+});
+
+// Sebagian browser (Safari lama) pakai prefix webkit
+document.addEventListener('webkitfullscreenchange', function () {
+    var fsElement = document.webkitFullscreenElement;
+    if (fsElement) {
+        fsElement.appendChild(modalAnggotaEl);
+    } else {
+        modalOriginalParent.appendChild(modalAnggotaEl);
+    }
+});
+
+    // === Pie Chart: Distribusi Anggota per Divisi ===
+    Highcharts.chart('chart-anggota-divisi', {
+        chart: { type: 'pie', backgroundColor: '#f0fdf4', style: { fontFamily: 'Inter, sans-serif' } },
+        title: { text: 'DISTRIBUSI PENGURUS', style: { color: '#0f4c3a', fontWeight: 'bold', fontSize: '18px' } },
+        subtitle: { text: 'PER DIVISI — klik salah satu bidang untuk lihat nama anggotanya', style: { color: '#475569', fontSize: '13px' } },
+        tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b> ({point.y} orang)' },
         plotOptions: {
             pie: {
-                allowPointSelect: true,
-                cursor: 'pointer',
-                colors: ['#fbbc05', '#34a853', '#fb8c00', '#ea4335', '#4285f4', '#8e24aa'],
-                dataLabels: {
-                    enabled: true,
-                    format: '<b>{point.name}</b>: {point.percentage:.1f}%<br/>{point.y} orang',
-                    distance: 20,
-                    style: {
-                        color: '#1f2937',
-                        textOutline: 'none',
-                        fontSize: '12px'
-                    },
-                    connectorColor: '#1f2937'
-                },
-                showInLegend: true,
-                borderWidth: 2,
-                borderColor: '#e0f2fe'
-            }
-        },
-        legend: {
-            itemStyle: {
-                color: '#1f2937',
-                fontWeight: 'normal'
-            },
-            itemHoverStyle: {
-                color: '#0A1931'
-            },
-            labelFormatter: function() {
-                return this.name + ' (' + this.y + ' orang)';
-            },
-            layout: 'horizontal',
-            align: 'center',
-            verticalAlign: 'bottom'
-        },
-        exporting: {
-            buttons: {
-                contextButton: {
-                    theme: {
-                        fill: 'transparent',
-                        states: {
-                            hover: { fill: '#bae6fd' },
-                            select: { fill: '#bae6fd' }
+                allowPointSelect: true, cursor: 'pointer',
+                colors: ['#1D9E75','#f59e0b','#0891b2','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#6366f1'],
+                dataLabels: { enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f}%<br/>{point.y} orang', distance: 20, style: { color: '#1f2937', textOutline: 'none', fontSize: '12px' }, connectorColor: '#1f2937' },
+                showInLegend: true, borderWidth: 2, borderColor: '#f0fdf4',
+                // === Event klik per bidang -> tampilkan modal nama anggota ===
+                point: {
+                    events: {
+                        click: function () {
+                            var namaBidang = this.name;
+                            var daftarAnggota = this.anggota || []; // dikirim dari backend Flask
+
+                            document.getElementById('modalAnggotaBidangLabel').innerText = 'Anggota Bidang ' + namaBidang;
+                            var listEl = document.getElementById('listAnggotaBidang');
+                            listEl.innerHTML = '';
+
+                            if (daftarAnggota.length === 0) {
+                                listEl.innerHTML = '<li class="list-group-item text-muted text-center">Belum ada data anggota</li>';
+                            } else {
+                                daftarAnggota.forEach(function (nama, idx) {
+                                    listEl.innerHTML += '<li class="list-group-item">' + (idx + 1) + '. ' + nama + '</li>';
+                                });
+                            }
+
+                            var modal = new bootstrap.Modal(document.getElementById('modalAnggotaBidang'));
+                            modal.show();
                         }
-                    },
-                    symbolStroke: '#1f2937'
+                    }
                 }
             }
         },
-        credits: {
-            enabled: false
-        },
-        series: [{
-            name: 'Persentase',
-            colorByPoint: true,
-            data: deptData
-        }]
+        legend: { itemStyle: { color: '#1f2937', fontWeight: 'normal' }, layout: 'horizontal', align: 'center', verticalAlign: 'bottom' },
+        exporting: { buttons: { contextButton: { theme: { fill: 'transparent', states: { hover: { fill: '#d1fae5' } } }, symbolStroke: '#1f2937' } } },
+        credits: { enabled: false },
+        series: [{ name: 'Persentase', colorByPoint: true, data: deptData }]
     });
 
-    // Evaluator Progress Column Chart
-    Highcharts.chart('chart-penilai', {
-        chart: {
-            type: 'column',
-            backgroundColor: '#e0f2fe',
-            style: {
-                fontFamily: 'Inter, sans-serif'
-            }
-        },
-        title: {
-            text: 'Distribusi & Progress Penilai'
-        },
-        xAxis: {
-            categories: penilaiData.categories
-        },
-        yAxis: {
-            min: 0,
-            title: {
-                text: 'Jumlah Penilai'
-            },
-            stackLabels: {
-                enabled: true,
-                style: {
-                    fontWeight: 'bold',
-                    color: ( // theme
-                        Highcharts.defaultOptions.title.style &&
-                        Highcharts.defaultOptions.title.style.color
-                    ) || 'gray',
-                    textOutline: 'none'
-                }
-            }
-        },
-        legend: {
-            align: 'right',
-            x: -30,
-            verticalAlign: 'top',
-            y: 25,
-            floating: true,
-            backgroundColor:
-                Highcharts.defaultOptions.legend.backgroundColor || 'white',
-            borderColor: '#CCC',
-            borderWidth: 1,
-            shadow: false
-        },
-        tooltip: {
-            headerFormat: '<b>{point.x}</b><br/>',
-            pointFormat: '{series.name}: {point.y}<br/>Total: {point.stackTotal}'
-        },
-        plotOptions: {
-            column: {
-                stacking: 'normal',
-                dataLabels: {
-                    enabled: true
-                }
-            }
-        },
-        colors: ['#ea4335', '#34a853'], // Merah (Belum) dan Hijau (Selesai)
-        exporting: {
-            enabled: true,
-            buttons: {
-                contextButton: {
-                    theme: {
-                        fill: 'transparent',
-                        states: {
-                            hover: { fill: '#bae6fd' },
-                            select: { fill: '#bae6fd' }
-                        }
-                    },
-                    symbolStroke: '#1f2937'
-                }
-            }
-        },
-        credits: {
-            enabled: false
-        },
-        series: [{
-            name: 'Belum Mengisi',
-            data: penilaiData.belum
-        }, {
-            name: 'Selesai',
-            data: penilaiData.selesai
-        }]
+    // === Line Chart: Tren Kas Masuk vs Keluar ===
+    Highcharts.chart('chart-kas', {
+        chart: { type: 'area', backgroundColor: '#f0fdf4', style: { fontFamily: 'Inter, sans-serif' } },
+        title: { text: 'TREN KAS MASUK VS KELUAR', style: { color: '#0f4c3a', fontWeight: 'bold', fontSize: '18px' } },
+        subtitle: { text: 'Per Bulan', style: { color: '#475569', fontSize: '13px' } },
+        xAxis: { categories: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'] },
+        yAxis: { title: { text: 'Nominal (Rp)' } },
+        tooltip: { shared: true, valuePrefix: 'Rp ' },
+        plotOptions: { area: { fillOpacity: 0.15 } },
+        colors: ['#1D9E75', '#ef4444'],
+        exporting: { buttons: { contextButton: { theme: { fill: 'transparent', states: { hover: { fill: '#d1fae5' } } }, symbolStroke: '#1f2937' } } },
+        credits: { enabled: false },
+        series: [
+            { name: 'Kas Masuk', data: {{ kas_masuk_chart|default([0,0,0,0,0,0,0,0,0,0,0,0])|tojson }} },
+            { name: 'Kas Keluar', data: {{ kas_keluar_chart|default([0,0,0,0,0,0,0,0,0,0,0,0])|tojson }} }
+        ]
     });
 });
 </script>

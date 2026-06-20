@@ -1,0 +1,242 @@
+{% extends "layout.html" %}
+
+{% block title %}Data Inventaris (Barang) - SIDIQ FORMAIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Inventaris (Aset Barang)</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="fas fa-plus me-1"></i> Tambah Barang
+    </button>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Aset (Semua Barang)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_barang }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-boxes fa-2x text-gray-300" style="color: #cbd5e1;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Kondisi Baik</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ baik }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300" style="color: #cbd5e1;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Kondisi Rusak</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ rusak }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-times-circle fa-2x text-gray-300" style="color: #cbd5e1;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle datatable" width="100%" cellspacing="0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center" style="width: 50px;">No</th>
+                        <th class="text-center" style="width: 80px;">Foto</th>
+                        <th>Nama Barang</th>
+                        <th>Kategori</th>
+                        <th class="text-center">Total</th>
+                        <th class="text-center">Tersedia</th>
+                        <th class="text-center">Kondisi</th>
+                        <th>Lokasi</th>
+                        <th class="text-center" style="width: 100px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in barang %}
+                    <tr>
+                        <td class="text-center">{{ loop.index }}</td>
+                        <td class="text-center">
+                            {% if b.foto %}
+                                <a href="{{ url_for('static', filename='uploads/' + b.foto) }}" target="_blank">
+                                    <img src="{{ url_for('static', filename='uploads/' + b.foto) }}" alt="Foto Barang" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                                </a>
+                            {% else %}
+                                <div style="width: 50px; height: 50px; background-color: #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                    <i class="fas fa-box text-secondary"></i>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold">{{ b.nama_barang }}</td>
+                        <td>{{ b.kategori or '-' }}</td>
+                        <td class="text-center fw-bold">{{ b.jumlah_total }}</td>
+                        <td class="text-center fw-bold text-primary">{{ b.jumlah_tersedia }}</td>
+                        <td class="text-center">
+                            {% if b.kondisi == 'Baik' %}
+                                <span class="badge bg-success">Baik</span>
+                            {% elif b.kondisi == 'Rusak Ringan' %}
+                                <span class="badge bg-warning text-dark">Rusak Ringan</span>
+                            {% else %}
+                                <span class="badge bg-danger">Rusak Berat</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ b.lokasi or '-' }}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-warning mb-1" data-bs-toggle="modal" data-bs-target="#editModal{{ b.id_barang }}" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <a href="{{ url_for('hapus_inventaris', id=b.id_barang) }}" class="btn btn-sm btn-danger mb-1" title="Hapus" onclick="return confirm('Yakin ingin menghapus barang ini?');">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Modal Edit -->
+                    <div class="modal fade" id="editModal{{ b.id_barang }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form action="{{ url_for('edit_inventaris', id=b.id_barang) }}" method="POST" enctype="multipart/form-data">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Data Barang</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nama Barang</label>
+                                            <input type="text" class="form-control" name="nama_barang" value="{{ b.nama_barang }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Kategori</label>
+                                            <input type="text" class="form-control" name="kategori" value="{{ b.kategori or '' }}" placeholder="Contoh: Elektronik, ATK, dsb.">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Jumlah Total</label>
+                                                <input type="number" class="form-control" name="jumlah_total" value="{{ b.jumlah_total }}" required min="1">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Jumlah Tersedia</label>
+                                                <input type="number" class="form-control" name="jumlah_tersedia" value="{{ b.jumlah_tersedia }}" required min="0">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Kondisi</label>
+                                            <select class="form-select" name="kondisi" required>
+                                                <option value="Baik" {% if b.kondisi == 'Baik' %}selected{% endif %}>Baik</option>
+                                                <option value="Rusak Ringan" {% if b.kondisi == 'Rusak Ringan' %}selected{% endif %}>Rusak Ringan</option>
+                                                <option value="Rusak Berat" {% if b.kondisi == 'Rusak Berat' %}selected{% endif %}>Rusak Berat</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Lokasi Penyimpanan</label>
+                                            <input type="text" class="form-control" name="lokasi" value="{{ b.lokasi or '' }}" placeholder="Contoh: Lemari Sekretariat">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Keterangan Tambahan</label>
+                                            <textarea class="form-control" name="keterangan" rows="2">{{ b.keterangan or '' }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Foto Barang (Opsional)</label>
+                                            <input type="file" class="form-control" name="foto" accept=".jpg,.jpeg,.png">
+                                            {% if b.foto %}
+                                                <small class="text-muted d-block mt-1">File saat ini: {{ b.foto }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('tambah_inventaris') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Barang Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nama Barang</label>
+                        <input type="text" class="form-control" name="nama_barang" required placeholder="Contoh: Proyektor Epson">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kategori</label>
+                        <input type="text" class="form-control" name="kategori" placeholder="Contoh: Elektronik">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Jumlah Total</label>
+                            <input type="number" class="form-control" name="jumlah_total" required min="1" value="1">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Jumlah Tersedia</label>
+                            <input type="number" class="form-control" name="jumlah_tersedia" required min="0" value="1">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kondisi</label>
+                        <select class="form-select" name="kondisi" required>
+                            <option value="Baik" selected>Baik</option>
+                            <option value="Rusak Ringan">Rusak Ringan</option>
+                            <option value="Rusak Berat">Rusak Berat</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lokasi Penyimpanan</label>
+                        <input type="text" class="form-control" name="lokasi" placeholder="Contoh: Lemari A">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Keterangan Tambahan</label>
+                        <textarea class="form-control" name="keterangan" rows="2" placeholder="Catatan opsional..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Foto Barang (Opsional)</label>
+                        <input type="file" class="form-control" name="foto" accept=".jpg,.jpeg,.png">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Barang</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

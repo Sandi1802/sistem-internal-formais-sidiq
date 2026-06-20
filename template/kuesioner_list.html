@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
-{% block title %}{{ 'Kelola Kuesioner' if session.role == 'hc' else 'Kuesioner Saya' }}{% endblock %}
+{% block title %}{{ 'Kelola Kuesioner' if session.role == 'admin' else 'Kuesioner Saya' }}{% endblock %}
 {% block content %}
 <div class="page-header animate-in" style="--delay: 1">
-    <h1>{{ 'Kelola Kuesioner' if session.role == 'hc' else 'Kuesioner Saya' }}</h1>
+    <h1>{{ 'Kelola Kuesioner' if session.role == 'admin' else 'Kuesioner Saya' }}</h1>
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-custom">
             <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
@@ -11,7 +11,7 @@
     </nav>
 </div>
 
-{% if session.role == 'hc' %}
+{% if session.role == 'admin' %}
 <div class="d-flex justify-content-end mb-4 animate-in" style="--delay: 2">
     <a href="{{ url_for('kuesioner_kelola') }}" class="btn btn-accent"><i class="fas fa-plus me-1"></i> Buat Kuesioner Baru</a>
 </div>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Cetak Surat - {{ s.jenis_surat }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .page-a4 {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm 20mm 20mm 25mm; /* Top, Right, Bottom, Left */
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+            color: #000;
+        }
+        
+        /* Kop Surat */
+        .kop-surat {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .kop-logo {
+            width: 90px;
+            height: auto;
+        }
+        .kop-text {
+            text-align: center;
+            flex-grow: 1;
+            padding: 0 10px;
+        }
+        .kop-text h2 {
+            margin: 0;
+            font-size: 14pt;
+            font-weight: bold;
+        }
+        .kop-text h1 {
+            margin: 0;
+            font-size: 16pt;
+            font-weight: bold;
+        }
+        .kop-text p {
+            margin: 2px 0 0 0;
+            font-size: 11pt;
+            font-style: italic;
+        }
+        .kop-text .contact {
+            font-size: 10pt;
+            margin-top: 2px;
+        }
+        .garis-kop {
+            border-top: 4px solid #000;
+            border-bottom: 1px solid #000;
+            height: 2px;
+            margin-bottom: 20px;
+            padding: 1px 0;
+        }
+
+        /* Header Surat */
+        .tanggal-surat {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+        .info-surat {
+            margin-bottom: 20px;
+        }
+        .info-surat table {
+            border-collapse: collapse;
+        }
+        .info-surat td {
+            vertical-align: top;
+            padding-bottom: 2px;
+        }
+        
+        /* Tujuan Surat */
+        .tujuan-surat {
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+        
+        /* Isi Surat */
+        .isi-surat {
+            text-align: justify;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+        .isi-surat p {
+            margin: 0 0 10px 0;
+        }
+        .salam-pembuka {
+            font-weight: bold;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+        .salam-penutup {
+            font-weight: bold;
+            font-style: italic;
+            margin-top: 15px;
+        }
+        
+        /* Detail Kegiatan */
+        .detail-kegiatan {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .detail-kegiatan table td {
+            padding: 3px 10px 3px 0;
+            vertical-align: top;
+        }
+        
+        /* Tabel Alat */
+        .tabel-alat {
+            width: 80%;
+            margin: 15px auto;
+            border-collapse: collapse;
+        }
+        .tabel-alat th, .tabel-alat td {
+            border: 1px solid #000;
+            padding: 5px 10px;
+        }
+        .tabel-alat th {
+            text-align: left;
+        }
+        
+        /* Tanda Tangan */
+        .ttd-section {
+            margin-top: 40px;
+        }
+        .ttd-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .ttd-box {
+            text-align: center;
+            width: 30%;
+            position: relative;
+        }
+        .ttd-box.center {
+            margin: 0 auto;
+        }
+        .ttd-mengetahui {
+            text-align: center;
+            margin: 30px 0 10px 0;
+        }
+        .ttd-space {
+            height: 70px; /* Ruang untuk tanda tangan */
+            position: relative;
+        }
+        /* Simulasi stempel / ttd acak */
+        .ttd-img {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 60px;
+            opacity: 0.8;
+            z-index: 1;
+        }
+        .stempel-img {
+            position: absolute;
+            top: -10px;
+            left: 20%;
+            height: 80px;
+            opacity: 0.6;
+            z-index: 0;
+        }
+        .nama-terang {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 2;
+        }
+        .nim-nip {
+            margin-top: 2px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Tombol Cetak */
+        .btn-print {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4e73df;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-print:hover {
+            background-color: #2e59d9;
+        }
+        .btn-back {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: #858796;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+            .page-a4 {
+                box-shadow: none;
+                padding: 20mm 20mm 20mm 25mm;
+            }
+            .btn-print, .btn-back {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="{{ url_for('persuratan') }}" class="btn-back">Kembali</a>
+    <button class="btn-print" onclick="window.print()">Cetak PDF</button>
+
+    <div class="page-a4">
+        
+        <!-- KOP SURAT -->
+        <div class="kop-surat">
+            <img src="https://via.placeholder.com/90x90.png?text=Logo+FORMAIS" class="kop-logo" alt="Logo Kiri">
+            <div class="kop-text">
+                <h2>FORUM MAHASISWA ISLAM</h2>
+                <h1>UNIVERSITAS TEKNOLOGI DIGITAL</h1>
+                <p>Jl. Cibogo Indah III, Mekarjaya, Kec. Rancasari, Kota Bandung</p>
+                <p>Jawa Barat 40000, Indonesia</p>
+                <div class="contact">
+                    Email: <a href="mailto:formais.digitech@gmail.com" style="color:blue;">formais.digitech@gmail.com</a> Instagram: formais_digitech
+                </div>
+            </div>
+            <img src="https://digitechuniversity.ac.id/wp-content/uploads/2023/10/logo-digitech.png" class="kop-logo" style="width: 80px;" alt="Logo Kanan">
+        </div>
+        <div class="garis-kop"></div>
+
+        <!-- TANGGAL SURAT -->
+        <div class="tanggal-surat">
+            Bandung, {{ data.tanggal_surat|default('13 Februari 2026') }}
+        </div>
+
+        <!-- HEADER SURAT -->
+        <div class="info-surat">
+            <table>
+                <tr>
+                    <td width="70">Nomor</td>
+                    <td width="10">:</td>
+                    <td>{{ data.nomor_surat }}</td>
+                </tr>
+                <tr>
+                    <td>Perihal</td>
+                    <td>:</td>
+                    <td>{{ data.perihal }}</td>
+                </tr>
+                <tr>
+                    <td>Lampiran</td>
+                    <td>:</td>
+                    <td>{{ data.lampiran|default('-') }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- TUJUAN -->
+        <div class="tujuan-surat">
+            Kepada Yth.<br>
+            <strong>{{ data.tujuan }}</strong><br>
+            Di Tempat
+        </div>
+
+        <!-- ISI SURAT -->
+        <div class="isi-surat">
+            {% if data.jenis_surat == 'TTD_SERTIF' or data.jenis_surat == 'UNDANGAN' %}
+            <p>Dengan hormat,</p>
+            {% endif %}
+            
+            <div class="salam-pembuka">Assalamu'alaikum Warahmatullahi Wabarakatuh.</div>
+            
+            <p style="text-indent: 40px;">Salam sejahtera kami sampaikan, semoga kita senantiasa berada dalam lindungan serta rahmat Allah SWT. Aamiin.</p>
+            
+            <p style="text-indent: 40px;">
+                {% if data.jenis_surat == 'UNDANGAN' %}
+                Sehubungan dengan diadakannya kegiatan <strong>{{ data.nama_kegiatan }}</strong>, maka dengan ini kami mengundang rekan-rekan untuk hadir pada agenda yang insyaallah akan dilaksanakan pada:
+                {% else %}
+                Sehubungan dengan diadakannya kegiatan <strong>{{ data.nama_kegiatan }}</strong> yang akan dilaksanakan pada:
+                {% endif %}
+            </p>
+
+            <div class="detail-kegiatan">
+                <table>
+                    <tr>
+                        <td width="100">Hari/Tanggal</td>
+                        <td width="10">:</td>
+                        <td>{{ data.hari_tanggal }}</td>
+                    </tr>
+                    <tr>
+                        <td>Waktu</td>
+                        <td>:</td>
+                        <td>{{ data.waktu_kegiatan }}</td>
+                    </tr>
+                    <tr>
+                        <td>Tempat</td>
+                        <td>:</td>
+                        <td>{{ data.tempat_kegiatan }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            {% if data.jenis_surat == 'SPR_RUANGAN' %}
+                <p style="text-indent: 40px;">Dengan adanya surat ini kami bermaksud untuk mengajukan peminjaman Ruangan Kelas/Aula, pada tanggal dan jam tersebut.</p>
+                <p style="text-indent: 40px;">Demikian surat peminjaman ini kami sampaikan, Besar harapan kami untuk bapak/ibu menyetujuinya, Atas perhatiaanya kami ucapakan terimaksih.</p>
+            
+            {% elif data.jenis_surat == 'SPR_ALAT' %}
+                <p style="text-indent: 40px;">Dengan adanya kegiatan tersebut kami bermaksud untuk meminjam peralatan sebagai sarana kegiatan tersebut, adapun peralatan yang digunakan sebagai berikut:</p>
+                
+                <table class="tabel-alat">
+                    <thead>
+                        <tr>
+                            <th width="10%">No</th>
+                            <th width="70%">Alat</th>
+                            <th width="20%">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if data.daftar_alat %}
+                            {% set alat_lines = data.daftar_alat.split('\n') %}
+                            {% for baris in alat_lines %}
+                                {% if baris.strip() %}
+                                    {% set parts = baris.split('-') %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ parts[0]|replace(loop.index ~ '.', '')|trim if parts|length > 0 else baris }}</td>
+                                        <td>{{ parts[1]|trim if parts|length > 1 else '-' }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                        <tr><td colspan="3" align="center">-</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                <p style="text-indent: 40px;">Demikian surat peminjaman ini kami sampaikan, Besar harapan kami untuk bapak/ibu menyetujuinya, Atas perhatiaanya kami ucapakan terimaksih.</p>
+            
+            {% elif data.jenis_surat == 'TTD_SERTIF' %}
+                <p style="text-indent: 40px;">Berkaitan dengan hal tersebut, dengan ini kami mohon kesediaan kemahasiswaan Universitas Teknologi Digital untuk menandatangani sertifikat kegiatan {{ data.nama_kegiatan }}.</p>
+                <p style="text-indent: 40px;">Besar harapan kami agar bapak/ibu berkenan menghadiri acara tersebut. Demikian surat ini kami sampaikan. Atas perhatian dan kerjasamanya kami ucapkan terima kasih.</p>
+            
+            {% elif data.jenis_surat == 'UNDANGAN' %}
+                <p style="text-indent: 40px;">Besar harapan kami agar rekan - rekan dapat menghadiri acara tersebut. Demikian surat ini kami sampaikan. Atas perhatian dan kerjasamanya kami ucapkan terima kasih.</p>
+            
+            {% elif data.jenis_surat == 'PERIZINAN' %}
+                <p style="text-indent: 40px;">Dengan adanya surat ini kami bermaksud untuk mengajukan permohonan izin keramaian pada tanggal dan jam tersebut.</p>
+                <p style="text-indent: 40px;">Demikian surat peminjaman ini kami sampaikan. Besar harapan kami untuk bapak/ibu menyetujuinya, Atas perhatiaanya kami ucapakan terimakasih.</p>
+            {% else %}
+                <p style="text-indent: 40px;">Demikian surat ini kami sampaikan, atas perhatian dan kerjasamanya kami ucapkan terima kasih.</p>
+            {% endif %}
+
+            <div class="salam-penutup">Wassalamu'alaikum Warahmatullahi Wabarakatuh.</div>
+        </div>
+
+        <!-- TANDA TANGAN -->
+        <div class="ttd-section">
+            {% if data.jenis_surat != 'PERIZINAN' %}
+            <div style="text-align: center; margin-bottom: 20px;">Hormat Kami,</div>
+            {% endif %}
+            
+            <div class="ttd-row">
+                <div class="ttd-box">
+                    <div><strong>{{ data.ttd1_jabatan|default('Ketua Pelaksana') }}</strong></div>
+                    <div>Forum Mahasiswa Islam</div>
+                    <div class="ttd-space">
+                        <img src="https://via.placeholder.com/150x80.png?text=STEMPEL+FORMAIS" class="stempel-img" alt="Stempel">
+                        <img src="https://via.placeholder.com/80x60.png?text=TTD" class="ttd-img" alt="TTD">
+                    </div>
+                    <div class="nama-terang">{{ data.ttd1_nama|default('Nuranisa Fitri') }}</div>
+                    <div class="nim-nip">NIM. {{ data.ttd1_nim|default('20123063') }}</div>
+                </div>
+                
+                <div class="ttd-box">
+                    <div><strong>{{ data.ttd2_jabatan|default('Sekretaris') }}</strong></div>
+                    <div>Forum Mahasiswa Islam</div>
+                    <div class="ttd-space">
+                        <img src="https://via.placeholder.com/150x80.png?text=STEMPEL+FORMAIS" class="stempel-img" alt="Stempel">
+                        <img src="https://via.placeholder.com/80x60.png?text=TTD" class="ttd-img" alt="TTD">
+                    </div>
+                    <div class="nama-terang">{{ data.ttd2_nama|default('Reka Yuningsih') }}</div>
+                    <div class="nim-nip">NIM. {{ data.ttd2_nim|default('20223016') }}</div>
+                </div>
+            </div>
+            
+            {% if data.ttd3_nama or data.ttd4_nama or data.ttd5_nama %}
+            <div class="ttd-mengetahui">
+                {% if data.jenis_surat == 'PERIZINAN' %}Mengetahui,{% else %}Mengetahui/Menyetujui,{% endif %}
+            </div>
+            <div class="ttd-row" style="margin-top: 10px; justify-content: space-around;">
+                {% if data.ttd3_nama %}
+                <div class="ttd-box">
+                    <div><strong>{{ data.ttd3_jabatan }}</strong></div>
+                    <div>Forum Mahasiswa Islam</div>
+                    <div class="ttd-space">
+                        <img src="https://via.placeholder.com/150x80.png?text=STEMPEL+FORMAIS" class="stempel-img" alt="Stempel">
+                        <img src="https://via.placeholder.com/80x60.png?text=TTD" class="ttd-img" alt="TTD">
+                    </div>
+                    <div class="nama-terang">{{ data.ttd3_nama }}</div>
+                    <div class="nim-nip">NIM. {{ data.ttd3_nim }}</div>
+                </div>
+                {% endif %}
+                
+                {% if data.ttd4_nama %}
+                <div class="ttd-box">
+                    <div><strong>{{ data.ttd4_jabatan }}</strong></div>
+                    {% if data.jenis_surat != 'PERIZINAN' %}<div>Universitas Teknologi Digital</div>{% endif %}
+                    <div class="ttd-space"></div>
+                    <div class="nama-terang">{{ data.ttd4_nama }}</div>
+                    <div class="nim-nip">NIP. {{ data.ttd4_nim }}</div>
+                </div>
+                {% endif %}
+                
+                {% if data.ttd5_nama %}
+                <div class="ttd-box">
+                    <div><strong>{{ data.ttd5_jabatan }}</strong></div>
+                    {% if data.jenis_surat != 'PERIZINAN' %}<div>&nbsp;</div>{% endif %}
+                    <div class="ttd-space"></div>
+                    <div class="nama-terang">{{ data.ttd5_nama }}</div>
+                    <div class="nim-nip">NIP. {{ data.ttd5_nim }}</div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+</body>
+</html>

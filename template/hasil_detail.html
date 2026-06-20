@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
-{% block title %}Detail Hasil - {{ karyawan.nama }}{% endblock %}
+{% block title %}Detail Hasil - {{ anggota.nama }}{% endblock %}
 {% block content %}
 <div class="page-header animate-in" style="--delay: 1">
-    <h1>Hasil Penilaian — {{ karyawan.nama }}</h1>
+    <h1>Hasil Penilaian — {{ anggota.nama }}</h1>
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb breadcrumb-custom">
             <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
@@ -16,16 +16,16 @@
     <div class="card-body">
         <div class="row text-center">
             <div class="col-md-4 border-end">
-                <small class="text-muted d-block">NIP</small>
-                <h5 class="font-weight-bold mb-0 text-primary">{{ karyawan.nip }}</h5>
+                <small class="text-muted d-block">NIM</small>
+                <h5 class="font-weight-bold mb-0 text-primary">{{ anggota.nim }}</h5>
             </div>
             <div class="col-md-4 border-end">
                 <small class="text-muted d-block">Jabatan</small>
-                <h5 class="font-weight-bold mb-0 text-primary">{{ karyawan.jabatan }}</h5>
+                <h5 class="font-weight-bold mb-0 text-primary">{{ anggota.jabatan }}</h5>
             </div>
             <div class="col-md-4">
-                <small class="text-muted d-block">Departemen</small>
-                <h5 class="font-weight-bold mb-0 text-primary">{{ karyawan.departemen }}</h5>
+                <small class="text-muted d-block">Divisi</small>
+                <h5 class="font-weight-bold mb-0 text-primary">{{ anggota.divisi }}</h5>
             </div>
         </div>
     </div>

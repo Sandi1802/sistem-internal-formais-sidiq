@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+{% block title %}Tambah Anggota{% endblock %}
+{% block content %}
+<div class="page-header animate-in" style="--delay: 1">
+    <h1>Tambah Anggota</h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-custom">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('anggota_list') }}">Anggota</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tambah</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card animate-in" style="--delay: 2">
+    <div class="card-header-custom">
+        <h5 class="m-0 font-weight-bold text-primary">Form Data Anggota</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('tambah_anggota') }}" method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="nim" class="form-label font-weight-bold">NIM</label>
+                    <input type="text" class="form-control" id="nim" name="nim" required placeholder="Masukkan NIM">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="nama" class="form-label font-weight-bold">Nama Lengkap</label>
+                    <input type="text" class="form-control" id="nama" name="nama" required placeholder="Masukkan Nama Lengkap">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="jabatan" class="form-label font-weight-bold">Jabatan</label>
+                    <input type="text" class="form-control" id="jabatan" name="jabatan" required placeholder="Contoh: Koordinator Divisi / Staff">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="divisi" class="form-label font-weight-bold">Divisi</label>
+                    <select class="form-select" id="divisi" name="divisi" required>
+                        <option value="">-- Pilih Divisi --</option>
+                        <option value="Ketua Umum">Ketua Umum</option>
+                        <option value="Wakil Ketua Umum">Wakil Ketua Umum</option>
+                        <option value="Sekretaris">Sekretaris</option>
+                        <option value="Bendahara">Bendahara</option>
+                        <option value="Kaderisasi">Kaderisasi</option>
+                        <option value="Syi'ar Umat">Syi'ar Umat</option>
+                        <option value="Kemuslimahan">Kemuslimahan</option>
+                        <option value="Entrepreneur">Entrepreneur</option>
+                        <option value="Humas dan Media">Humas dan Media</option>
+                        <option value="PSDM">PSDM</option>
+                        <option value="Pengurus">Pengurus</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="angkatan" class="form-label font-weight-bold">Angkatan</label>
+                    <input type="text" class="form-control" id="angkatan" name="angkatan" placeholder="Contoh: 2023">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="no_wa" class="form-label font-weight-bold">No. WhatsApp</label>
+                    <input type="text" class="form-control" id="no_wa" name="no_wa" placeholder="Contoh: 08123456789">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="status_keanggotaan" class="form-label font-weight-bold">Status Keanggotaan</label>
+                    <select class="form-select" id="status_keanggotaan" name="status_keanggotaan">
+                        <option value="Aktif">Aktif</option>
+                        <option value="Cuti">Cuti</option>
+                        <option value="Alumni">Alumni</option>
+                        <option value="Diberhentikan">Diberhentikan</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="tipe_anggota" class="form-label font-weight-bold">Tipe Anggota</label>
+                    <select class="form-select" id="tipe_anggota" name="tipe_anggota" required>
+                        <option value="Anggota" {% if request.args.get('tipe') == 'Anggota' %}selected{% endif %}>Anggota</option>
+                        <option value="Pengurus" {% if request.args.get('tipe') == 'Pengurus' %}selected{% endif %}>Pengurus</option>
+                        <option value="Calon Anggota" {% if request.args.get('tipe') == 'Calon Anggota' %}selected{% endif %}>Calon Anggota</option>
+                        <option value="Anak Magang" {% if request.args.get('tipe') == 'Anak Magang' %}selected{% endif %}>Anak Magang</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <label for="id_atasan" class="form-label font-weight-bold">Atasan / Mentor (Opsional)</label>
+                    <select class="form-select" id="id_atasan" name="id_atasan">
+                        <option value="">-- Pilih Atasan --</option>
+                        {% for a in atasan_list %}
+                        <option value="{{ a.id_anggota }}">{{ a.nama }} - {{ a.jabatan }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <hr class="mb-4">
+            
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('anggota_list') }}" class="btn btn-outline-primary"><i class="fas fa-arrow-left me-1"></i> Batal</a>
+                <button type="submit" class="btn btn-accent"><i class="fas fa-save me-1"></i> Simpan Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

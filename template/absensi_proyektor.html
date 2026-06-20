@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Proyektor Absensi - {{ sesi.nama_kegiatan }}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .proyektor-container {
+            display: flex;
+            width: 90%;
+            max-width: 1200px;
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+        }
+        .qr-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            padding-right: 40px;
+        }
+        .info-section {
+            flex: 1;
+            padding-left: 40px;
+            display: flex;
+            flex-direction: column;
+        }
+        #qrcode {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transition: all 0.5s ease;
+        }
+        .title-text {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .live-badge {
+            background: #ef4444;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .stat-number {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #34d399;
+            line-height: 1;
+        }
+        .recent-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .recent-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .small-note {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="proyektor-container">
+        
+        <div class="qr-section">
+            <div class="live-badge">
+                <div class="live-dot"></div>
+                SESI ABSENSI DIBUKA
+            </div>
+            <h1 class="title-text text-center">{{ sesi.nama_kegiatan }}</h1>
+            <p class="text-slate-400 mb-4 text-center">Scan QR Code ini menggunakan HP Anda untuk mencatat kehadiran.</p>
+            
+            <div id="qrcode"></div>
+            
+            <p class="small-note mt-4">
+                🔒 QR Code akan berubah otomatis setiap 30 menit.<br>Screenshot tidak berlaku!
+            </p>
+        </div>
+        
+        <div class="info-section">
+            <div class="stat-box">
+                <div class="text-slate-400 font-bold mb-2">TOTAL HADIR</div>
+                <div class="stat-number" id="total_hadir">0</div>
+            </div>
+            
+            <h5 class="font-bold text-slate-300 mb-3 mt-4">Anggota Terakhir Hadir:</h5>
+            <ul class="recent-list" id="recent_list">
+                <!-- Diisi oleh JS -->
+            </ul>
+        </div>
+        
+    </div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        const idSesi = {{ sesi.id_sesi }};
+        let qrcode = new QRCode(document.getElementById("qrcode"), {
+            text: "",
+            width: 300,
+            height: 300,
+            colorDark : "#0f172a",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+        
+        let lastToken = "";
+
+        function updateAbsensi() {
+            fetch(`/absensi/api/token/${idSesi}`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === 'closed') {
+                        document.body.innerHTML = '<h1 style="color:white; text-align:center;">Sesi Absensi Telah Ditutup.</h1>';
+                        return;
+                    }
+                    
+                    // Update QR jika token berubah
+                    if(data.token !== lastToken) {
+                        qrcode.clear();
+                        qrcode.makeCode(data.scan_url);
+                        lastToken = data.token;
+                        
+                        // Efek pulse pada QR saat update
+                        document.getElementById('qrcode').classList.remove('pulse');
+                        void document.getElementById('qrcode').offsetWidth; // trigger reflow
+                        document.getElementById('qrcode').classList.add('pulse');
+                    }
+                    
+                    // Update Total Hadir
+                    document.getElementById('total_hadir').innerText = data.hadir_count;
+                    
+                    // Update List Recent
+                    const ul = document.getElementById('recent_list');
+                    ul.innerHTML = '';
+                    if(data.recent.length === 0) {
+                        ul.innerHTML = '<li class="text-slate-500 text-center py-4">Belum ada yang absen</li>';
+                    } else {
+                        data.recent.forEach(r => {
+                            ul.innerHTML += `<li class="recent-item">
+                                <span class="font-bold">${r.nama}</span>
+                                <span class="text-slate-400 text-sm">${r.waktu}</span>
+                            </li>`;
+                        });
+                    }
+                })
+                .catch(err => console.error("Error fetching token:", err));
+        }
+
+        // Jalankan pertama kali
+        updateAbsensi();
+        
+        // Polling setiap 5 detik (untuk update total hadir realtime, token tetap berubah tiap 30m sesuai server)
+        setInterval(updateAbsensi, 5000);
+    </script>
+</body>
+</html>

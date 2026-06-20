@@ -13,8 +13,8 @@
 
 <div class="card animate-in" style="--delay: 2">
     <div class="card-header-custom d-flex justify-content-between align-items-center">
-        <h5 class="m-0 font-weight-bold text-primary">Rekapitulasi Hasil Penilaian 360°</h5>
-        {% if session.get('role') == 'hc' %}
+        <h5 class="m-0 font-weight-bold text-primary">Rekapitulasi Hasil SIDIQ FORMAIS</h5>
+        {% if session.get('role') == 'admin' %}
         <form action="{{ url_for('api_hitung_skor', id_kuesioner=1) }}" method="POST" class="m-0">
             <button type="submit" class="btn btn-accent btn-sm"><i class="fas fa-calculator me-1"></i> Hitung & Publikasi Hasil</button>
         </form>
@@ -26,10 +26,10 @@
                 <thead>
                     <tr>
                         <th width="5%">No</th>
-                        <th width="10%">NIP</th>
+                        <th width="10%">NIM</th>
                         <th width="25%">Nama</th>
                         <th width="15%">Jabatan</th>
-                        <th width="15%">Departemen</th>
+                        <th width="15%">Divisi</th>
                         <th width="15%">Skor Rata-rata</th>
                         <th width="15%">Aksi</th>
                     </tr>
@@ -38,10 +38,10 @@
                     {% for h in hasil_list %}
                     <tr>
                         <td>{{ loop.index }}</td>
-                        <td>{{ h.nip }}</td>
+                        <td>{{ h.nim }}</td>
                         <td class="font-weight-bold">{{ h.nama }}</td>
                         <td>{{ h.jabatan }}</td>
-                        <td>{{ h.departemen }}</td>
+                        <td>{{ h.divisi }}</td>
                         <td>
                             {% if h.rata_rata %}
                                 {% if h.rata_rata >= 4.0 %}
@@ -56,7 +56,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for('hasil_detail', id_karyawan=h.id_karyawan) }}" class="btn btn-sm btn-primary {% if not h.rata_rata %}disabled{% endif %}">
+                            <a href="{{ url_for('hasil_detail', id_anggota=h.id_anggota) }}" class="btn btn-sm btn-primary {% if not h.rata_rata %}disabled{% endif %}">
                                 <i class="fas fa-chart-bar"></i> Lihat Detail
                             </a>
                         </td>

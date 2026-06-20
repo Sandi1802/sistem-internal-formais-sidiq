@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block title %}Persuratan - SIDIQ FORMAIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Manajemen Persuratan</h1>
+    <a href="{{ url_for('persuratan_tambah') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Buat Surat Baru
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Daftar Surat Keluar</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle datatable" id="dataTable" width="100%" cellspacing="0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="5%">No</th>
+                        <th width="15%">Tanggal Surat</th>
+                        <th width="15%">Jenis / Template</th>
+                        <th width="20%">Nomor Surat</th>
+                        <th width="20%">Perihal</th>
+                        <th width="10%">Status</th>
+                        <th width="15%" class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in surat %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ s.tanggal_surat }}</td>
+                        <td><span class="badge bg-info">{{ s.jenis_surat }}</span></td>
+                        <td><strong>{{ s.nomor_surat }}</strong></td>
+                        <td>{{ s.perihal }}</td>
+                        <td>
+                            {% if s.status == 'Disetujui' %}
+                                <span class="badge bg-success"><i class="fas fa-check-circle"></i> Disetujui</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-clock"></i> Draft</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('persuratan_cetak', id=s.id_surat) }}" target="_blank" class="btn btn-sm btn-info" title="Lihat/Cetak">
+                                <i class="fas fa-print"></i>
+                            </a>
+                            
+                            {% if s.status != 'Disetujui' %}
+                                <form action="{{ url_for('persuratan_setuju', id=s.id_surat) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Setujui Surat" onclick="return confirm('Setujui surat ini?');">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            
+                            <form action="{{ url_for('persuratan_hapus', id=s.id_surat) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Hapus surat ini?');">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Belum ada data persuratan.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+</div>
+{% endblock %}

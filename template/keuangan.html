@@ -1,0 +1,235 @@
+{% extends "layout.html" %}
+
+{% block title %}Keuangan (Bendahara) - SIDIQ FORMAIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Keuangan - {{ current_tab }}</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="fas fa-plus me-1"></i> Tambah Transaksi
+    </button>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card border-left-success shadow h-100 py-2" style="border-left: 4px solid #10b981;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Pemasukan</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">Rp {{ "{:,.0f}".format(total_pemasukan).replace(',', '.') }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-arrow-circle-down fa-2x text-gray-300" style="color: #cbd5e1;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-left-danger shadow h-100 py-2" style="border-left: 4px solid #ef4444;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Total Pengeluaran</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">Rp {{ "{:,.0f}".format(total_pengeluaran).replace(',', '.') }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-arrow-circle-up fa-2x text-gray-300" style="color: #cbd5e1;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2" style="border-left: 4px solid #3b82f6;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Saldo Saat Ini</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">Rp {{ "{:,.0f}".format(saldo_saat_ini).replace(',', '.') }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-wallet fa-2x text-gray-300" style="color: #cbd5e1;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Nav Tabs -->
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link {% if current_tab == 'Arus Kas' %}active fw-bold{% endif %}" href="{{ url_for('keuangan_list', tab='Arus Kas') }}">Arus Kas (Semua)</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if current_tab == 'Pemasukan' %}active fw-bold text-success{% endif %}" href="{{ url_for('keuangan_list', tab='Pemasukan') }}">Pemasukan</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if current_tab == 'Pengeluaran' %}active fw-bold text-danger{% endif %}" href="{{ url_for('keuangan_list', tab='Pengeluaran') }}">Pengeluaran</a>
+  </li>
+</ul>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle datatable" width="100%" cellspacing="0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center" style="width: 50px;">No</th>
+                        <th>Tanggal</th>
+                        <th>Keterangan</th>
+                        <th>Kategori</th>
+                        {% if current_tab == 'Arus Kas' %}
+                        <th>Jenis</th>
+                        {% endif %}
+                        <th>Jumlah (Rp)</th>
+                        <th>Bukti</th>
+                        <th class="text-center" style="width: 100px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k in kas %}
+                    <tr>
+                        <td class="text-center">{{ loop.index }}</td>
+                        <td>{{ k.tanggal.strftime('%d-%m-%Y') if k.tanggal else '-' }}</td>
+                        <td class="fw-bold">{{ k.keterangan }}</td>
+                        <td>{{ k.kategori or '-' }}</td>
+                        {% if current_tab == 'Arus Kas' %}
+                        <td>
+                            {% if k.jenis == 'Pemasukan' %}
+                                <span class="badge bg-success"><i class="fas fa-arrow-down me-1"></i>Pemasukan</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="fas fa-arrow-up me-1"></i>Pengeluaran</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        <td class="{% if k.jenis == 'Pemasukan' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                            {{ "{:,.0f}".format(k.jumlah).replace(',', '.') }}
+                        </td>
+                        <td class="text-center">
+                            {% if k.bukti_file %}
+                                <a href="{{ url_for('static', filename='uploads/' + k.bukti_file) }}" class="btn btn-sm btn-outline-primary" target="_blank" title="Lihat Bukti">
+                                    <i class="fas fa-image"></i>
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ k.id_kas }}" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <a href="{{ url_for('hapus_keuangan', id=k.id_kas, tab=current_tab) }}" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Yakin ingin menghapus transaksi ini?');">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Modal Edit -->
+                    <div class="modal fade" id="editModal{{ k.id_kas }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form action="{{ url_for('edit_keuangan', id=k.id_kas) }}" method="POST" enctype="multipart/form-data">
+                                    <input type="hidden" name="tab_current" value="{{ current_tab }}">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Transaksi</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Jenis Transaksi</label>
+                                            <select class="form-select" name="jenis" required>
+                                                <option value="Pemasukan" {% if k.jenis == 'Pemasukan' %}selected{% endif %}>Pemasukan</option>
+                                                <option value="Pengeluaran" {% if k.jenis == 'Pengeluaran' %}selected{% endif %}>Pengeluaran</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Tanggal</label>
+                                            <input type="date" class="form-control" name="tanggal" value="{{ k.tanggal }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Keterangan</label>
+                                            <input type="text" class="form-control" name="keterangan" value="{{ k.keterangan }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Kategori</label>
+                                            <input type="text" class="form-control" name="kategori" value="{{ k.kategori or '' }}" placeholder="Contoh: Entrepreneur, Donasi, Konsumsi...">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Jumlah (Rp)</label>
+                                            <input type="number" class="form-control" name="jumlah" value="{{ k.jumlah|int }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Bukti Transaksi (Opsional)</label>
+                                            <input type="file" class="form-control" name="bukti_file" accept=".jpg,.jpeg,.png,.pdf">
+                                            {% if k.bukti_file %}
+                                                <small class="text-muted d-block mt-1">File saat ini: {{ k.bukti_file }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('tambah_keuangan') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="tab_current" value="{{ current_tab }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Transaksi Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Jenis Transaksi</label>
+                        <select class="form-select" name="jenis" required>
+                            <option value="Pemasukan" {% if current_tab == 'Pemasukan' %}selected{% endif %}>Pemasukan</option>
+                            <option value="Pengeluaran" {% if current_tab == 'Pengeluaran' %}selected{% endif %}>Pengeluaran</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal</label>
+                        <input type="date" class="form-control" name="tanggal" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Keterangan</label>
+                        <input type="text" class="form-control" name="keterangan" required placeholder="Contoh: Beli konsumsi rapat">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kategori</label>
+                        <input type="text" class="form-control" name="kategori" placeholder="Contoh: Entrepreneur, Operasional...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jumlah (Rp)</label>
+                        <input type="number" class="form-control" name="jumlah" required placeholder="Contoh: 50000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bukti Transaksi (Opsional)</label>
+                        <input type="file" class="form-control" name="bukti_file" accept=".jpg,.jpeg,.png,.pdf">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+{% block title %}Absensi Digital — SIDIQ FORMAIS{% endblock %}
+{% block content %}
+<div class="page-header animate-in" style="--delay: 1">
+    <h1>Absensi Digital</h1>
+    <p class="text-muted">Kelola sesi absensi berbasis QR Code dinamis</p>
+</div>
+
+<div class="card mb-4 animate-in" style="--delay: 2">
+    <div class="card-header-custom d-flex justify-content-between align-items-center">
+        <h5 class="m-0 font-weight-bold">Daftar Sesi Absensi</h5>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalBuatSesi">
+            <i class="fas fa-plus"></i> Buat Sesi Baru
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-container">
+            <table class="table table-bordered w-100">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Kegiatan</th>
+                        <th>Waktu Dibuat</th>
+                        <th>Pembuat</th>
+                        <th>Total Hadir</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sesi_list %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td class="fw-bold">{{ s.nama_kegiatan }}</td>
+                        <td>{{ s.tanggal.strftime('%d %b %Y, %H:%M') }}</td>
+                        <td>{{ s.nama_pembuat }}</td>
+                        <td><span class="badge bg-info">{{ s.total_hadir }} Anggota</span></td>
+                        <td>
+                            {% if s.status_buka %}
+                            <span class="badge bg-success">Berjalan</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Ditutup</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if s.status_buka %}
+                            <a href="{{ url_for('absensi_proyektor', id_sesi=s.id_sesi) }}" class="btn btn-sm btn-dark mb-1" target="_blank">
+                                <i class="fas fa-project-diagram"></i> Proyektor
+                            </a>
+                            <a href="{{ url_for('absensi_tutup', id_sesi=s.id_sesi) }}" class="btn btn-sm btn-danger mb-1" onclick="return confirm('Tutup sesi absensi ini?')">
+                                <i class="fas fa-power-off"></i> Tutup Sesi
+                            </a>
+                            {% endif %}
+                            <a href="{{ url_for('absensi_detail', id_sesi=s.id_sesi) }}" class="btn btn-sm btn-outline-primary mb-1">
+                                <i class="fas fa-eye"></i> Detail Kehadiran
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">Belum ada sesi absensi yang dibuat.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Buat Sesi -->
+<div class="modal fade" id="modalBuatSesi" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ url_for('absensi_buat') }}" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title">Buat Sesi Absensi Baru</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+              <label class="form-label fw-bold">Nama Kegiatan / Pertemuan</label>
+              <input type="text" name="nama_kegiatan" class="form-control" placeholder="Cth: Rapat Bulanan September, Piket Divisi..." required>
+          </div>
+          <p class="small text-muted"><i class="fas fa-info-circle"></i> Sesi absensi akan menggunakan QR Code Dinamis yang berubah setiap 30 Menit untuk mencegah titip absen.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">Buat Sesi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

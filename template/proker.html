@@ -1,0 +1,295 @@
+{% extends "layout.html" %}
+
+{% block title %}Program Kerja (Proker) - SIDIQ FORMAIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Program Kerja (Proker) - {{ current_tipe }}</h1>
+    <div>
+        <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="fas fa-file-excel me-1"></i> Import Excel
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="fas fa-plus me-1"></i> Tambah Proker
+        </button>
+    </div>
+</div>
+
+<!-- Nav Tabs -->
+<ul class="nav nav-tabs mb-4">
+  <li class="nav-item">
+    <a class="nav-link {% if current_tipe == 'Akbar' %}active fw-bold{% endif %}" href="{{ url_for('proker_list', tipe='Akbar') }}">Proker Akbar</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if current_tipe == 'Kecil' %}active fw-bold{% endif %}" href="{{ url_for('proker_list', tipe='Kecil') }}">Proker Kecil</a>
+  </li>
+</ul>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle datatable" id="dataTable" width="100%" cellspacing="0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center" style="width: 50px;">No</th>
+                        <th>Bulan</th>
+                        <th>Program</th>
+                        <th>Divisi</th>
+                        <th>PIC</th>
+                        <th>Target</th>
+                        <th>Anggaran</th>
+                        <th>Status</th>
+                        <th>Catatan</th>
+                        <th>Hasil Akhir</th>
+                        <th class="text-center" style="width: 120px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in proker %}
+                    <tr>
+                        <td class="text-center">{{ loop.index }}</td>
+                        <td>
+                            {% if p.tanggal_mulai %}
+                                {{ p.tanggal_mulai|date_month_name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold">{{ p.nama_proker }}</td>
+                        <td>{{ p.divisi or '-' }}</td>
+                        <td>{{ p.pic_nama or '-' }}</td>
+                        <td>{{ p.target or '-' }}</td>
+                        <td>Rp {{ "{:,.0f}".format(p.anggaran).replace(',', '.') }}</td>
+                        <td>
+                            {% if p.status == 'Selesai' %}
+                                <span class="badge bg-success">Selesai</span>
+                            {% elif p.status == 'Dalam proses' %}
+                                <span class="badge bg-warning text-dark">Dalam proses</span>
+                            {% elif p.status == 'Belum dimulai' %}
+                                <span class="badge bg-secondary">Belum dimulai</span>
+                            {% else %}
+                                <span class="badge bg-info text-dark">{{ p.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ p.catatan or '-' }}</td>
+                        <td class="text-center">
+                            {% if p.file_hasil %}
+                                <a href="{{ url_for('static', filename='uploads/' + p.file_hasil) }}" class="btn btn-sm btn-outline-primary" target="_blank" title="Lihat File">
+                                    <i class="fas fa-file-alt"></i> File
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ p.id_proker }}" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#statusModal{{ p.id_proker }}" title="Update Status">
+                                <i class="fas fa-tasks"></i>
+                            </button>
+                            <a href="{{ url_for('hapus_proker', id=p.id_proker) }}" class="btn btn-sm btn-danger" title="Hapus" onclick="return confirm('Yakin ingin menghapus proker ini?');">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Modal Edit -->
+                    <div class="modal fade" id="editModal{{ p.id_proker }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form action="{{ url_for('edit_proker', id=p.id_proker) }}" method="POST">
+                                    <input type="hidden" name="tipe_proker" value="{{ current_tipe }}">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Program Kerja</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nama Program</label>
+                                            <input type="text" class="form-control" name="nama_proker" value="{{ p.nama_proker }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Divisi</label>
+                                            <select class="form-select" name="divisi">
+                                                <option value="">-- Pilih Divisi --</option>
+                                                {% set divisi_list = ['Ketua Umum', 'Sekretaris Jenderal', 'Bendahara Umum', 'Kaderisasi', 'Syiar Umat', 'Humas dan Media', 'Sekretariat', 'Entrepreneur'] %}
+                                                {% for d in divisi_list %}
+                                                <option value="{{ d }}" {% if p.divisi == d %}selected{% endif %}>{{ d }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Penanggung Jawab (PIC)</label>
+                                            <select class="form-select" name="penanggung_jawab">
+                                                <option value="">-- Pilih Anggota --</option>
+                                                {% for a in anggota_list %}
+                                                <option value="{{ a.id_anggota }}" {% if p.penanggung_jawab == a.id_anggota %}selected{% endif %}>{{ a.nama }} ({{ a.jabatan }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Target</label>
+                                            <input type="text" class="form-control" name="target" value="{{ p.target or '' }}">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Tanggal Mulai (Bulan)</label>
+                                                <input type="date" class="form-control" name="tanggal_mulai" value="{{ p.tanggal_mulai }}">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Tanggal Selesai</label>
+                                                <input type="date" class="form-control" name="tanggal_selesai" value="{{ p.tanggal_selesai }}">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Anggaran (Rp)</label>
+                                            <input type="number" class="form-control" name="anggaran" value="{{ p.anggaran }}">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Update Status -->
+                    <div class="modal fade" id="statusModal{{ p.id_proker }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form action="{{ url_for('update_status_proker', id=p.id_proker) }}" method="POST" enctype="multipart/form-data">
+                                    <input type="hidden" name="tipe_proker" value="{{ current_tipe }}">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Update Status & Laporan</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Status</label>
+                                            <select class="form-select" name="status">
+                                                <option value="Belum dimulai" {% if p.status == 'Belum dimulai' %}selected{% endif %}>Belum dimulai</option>
+                                                <option value="Dalam proses" {% if p.status == 'Dalam proses' %}selected{% endif %}>Dalam proses</option>
+                                                <option value="Selesai" {% if p.status == 'Selesai' %}selected{% endif %}>Selesai</option>
+                                                <option value="Dibatalkan" {% if p.status == 'Dibatalkan' %}selected{% endif %}>Dibatalkan</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Catatan</label>
+                                            <textarea class="form-control" name="catatan" rows="3">{{ p.catatan or '' }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Upload File Laporan/Hasil Akhir</label>
+                                            <input type="file" class="form-control" name="file_hasil" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+                                            {% if p.file_hasil %}
+                                                <small class="text-muted mt-1 d-block">File saat ini: {{ p.file_hasil }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-primary">Simpan Status</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('tambah_proker') }}" method="POST">
+                <input type="hidden" name="tipe_proker" value="{{ current_tipe }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Program Kerja {{ current_tipe }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nama Program</label>
+                        <input type="text" class="form-control" name="nama_proker" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Divisi</label>
+                        <select class="form-select" name="divisi">
+                            <option value="">-- Pilih Divisi --</option>
+                            {% set divisi_list = ['Ketua Umum', 'Sekretaris Jenderal', 'Bendahara Umum', 'Kaderisasi', 'Syiar Umat', 'Humas dan Media', 'Sekretariat', 'Entrepreneur'] %}
+                            {% for d in divisi_list %}
+                            <option value="{{ d }}">{{ d }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Penanggung Jawab (PIC)</label>
+                        <select class="form-select" name="penanggung_jawab">
+                            <option value="">-- Pilih Anggota --</option>
+                            {% for a in anggota_list %}
+                            <option value="{{ a.id_anggota }}">{{ a.nama }} ({{ a.jabatan }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Target</label>
+                        <input type="text" class="form-control" name="target" placeholder="Contoh: 50 peserta / 20 PJ Pengurus">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tanggal Mulai (Bulan)</label>
+                            <input type="date" class="form-control" name="tanggal_mulai">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tanggal Selesai</label>
+                            <input type="date" class="form-control" name="tanggal_selesai">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Anggaran (Rp)</label>
+                        <input type="number" class="form-control" name="anggaran" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Proker</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Import Excel -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('import_proker') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="tipe_proker" value="{{ current_tipe }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import Proker {{ current_tipe }} (Excel)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Upload file Excel (.xlsx) dengan format kolom: <b>Nama Program, Divisi, Target, Anggaran, Tanggal Mulai, Tanggal Selesai, Status</b>.</p>
+                    <div class="alert alert-info py-2 small">
+                        <i class="fas fa-info-circle me-1"></i> Tanggal Mulai & Selesai harus dalam format <strong>YYYY-MM-DD</strong>.
+                    </div>
+                    <input type="file" class="form-control" name="file" accept=".xlsx,.xls,.csv" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success"><i class="fas fa-upload me-1"></i> Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

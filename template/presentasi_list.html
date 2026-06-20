@@ -1,0 +1,88 @@
+{% extends 'layout.html' %}
+
+{% block title %}SIDIQ - Fitur Presentasi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold m-0"><i class="fas fa-desktop text-primary me-2"></i> Fitur Presentasi</h2>
+        <p class="text-muted mt-2">Buat dan mainkan slide presentasi untuk rapat, program kerja, atau diskusi.</p>
+    </div>
+    <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalTambahPres" style="border-radius: 8px;">
+        <i class="fas fa-plus me-2"></i> Buat Presentasi Baru
+    </button>
+</div>
+
+<div class="row">
+    {% for p in presentasi %}
+    <div class="col-md-4 col-sm-6 mb-4">
+        <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fas fa-file-powerpoint text-primary" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">{{ p.judul }}</h5>
+                <span class="badge bg-secondary mb-3">{{ p.topik }}</span>
+                <p class="text-muted small mb-0">Dibuat oleh: <strong>{{ p.nama_pembuat or 'Pengurus' }}</strong></p>
+                <p class="text-muted small">{{ p.tanggal_dibuat.strftime('%d %b %Y') if p.tanggal_dibuat else '' }}</p>
+            </div>
+            <div class="card-footer bg-white border-top-0 p-3">
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('presentasi_play', id_pres=p.id_presentasi) }}" class="btn btn-success fw-bold flex-grow-1" style="border-radius: 8px;" target="_blank">
+                        <i class="fas fa-play me-1"></i> PLAY
+                    </a>
+                    <a href="{{ url_for('presentasi_slide', id_pres=p.id_presentasi) }}" class="btn btn-outline-primary" style="border-radius: 8px;" title="Edit Slide">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    {% if session.get('role', '')|upper in ['HC', 'TIM IT', 'ADMIN'] %}
+                    <a href="{{ url_for('hapus_presentasi', id_pres=p.id_presentasi) }}" class="btn btn-outline-danger" style="border-radius: 8px;" onclick="return confirm('Hapus SELURUH presentasi ini beserta semua slidenya?')" title="Hapus">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5 text-muted">
+        <i class="fas fa-chalkboard fa-3x mb-3 text-light"></i>
+        <h5>Belum ada file presentasi.</h5>
+        <p>Buat presentasi pertama Anda untuk memulai diskusi atau sosialisasi.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Tambah Presentasi -->
+<div class="modal fade" id="modalTambahPres" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 12px; border:none;">
+      <div class="modal-header border-bottom-0 pt-4 pb-0 px-4">
+        <h5 class="modal-title fw-bold">Buat Presentasi Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('tambah_presentasi') }}" method="POST">
+        <div class="modal-body p-4">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Judul Presentasi</label>
+                <input type="text" name="judul" class="form-control form-control-lg" placeholder="Cth: Sosialisasi Penggunaan SIDIQ" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Kategori / Topik</label>
+                <select name="topik" class="form-select form-select-lg" required>
+                    <option value="Panduan Aplikasi">Panduan Aplikasi</option>
+                    <option value="Program Kerja">Program Kerja</option>
+                    <option value="Diskusi / Rapat">Diskusi / Rapat</option>
+                    <option value="Laporan Keuangan">Laporan Keuangan</option>
+                    <option value="Lainnya">Lainnya</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer border-top-0 px-4 pb-4">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary fw-bold px-4">Buat & Lanjut Edit Slide</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

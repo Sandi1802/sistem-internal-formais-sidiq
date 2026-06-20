@@ -1,0 +1,292 @@
+{% extends "layout.html" %}
+
+{% block title %}Kalender Kegiatan - SIDIQ FORMAIS{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Watermark style inside the calendar container */
+  #calendar-container {
+      position: relative;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      min-height: 600px;
+  }
+
+  #calendar-container::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      height: 400px;
+      background-image: url("{{ url_for('static', filename='admin/img/logo-formais.png') }}");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      opacity: 0.1; /* Adjust transparency here */
+      z-index: 0;
+      pointer-events: none;
+  }
+
+  /* Make calendar events sit above the watermark */
+  #calendar {
+      position: relative;
+      z-index: 1;
+  }
+
+  /* Styling for the FullCalendar Header */
+  .fc .fc-toolbar-title {
+      font-weight: 700;
+      color: #344767;
+  }
+
+  /* Custom badge for filtering */
+  .filter-btn {
+      transition: all 0.2s;
+  }
+  .filter-btn.active {
+      transform: scale(1.05);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Kalender Kegiatan FORMAIS</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahKegiatanModal">
+        <i class="fas fa-plus me-1"></i> Tambah Kegiatan
+    </button>
+</div>
+
+<!-- Filter Box -->
+<div class="card shadow mb-4">
+    <div class="card-body py-3 d-flex align-items-center gap-3">
+        <span class="fw-bold text-secondary mb-0"><i class="fas fa-filter"></i> Filter Divisi/Kategori:</span>
+        <select id="divisiFilter" class="form-select form-select-sm w-auto d-inline-block">
+            <option value="">-- Semua Kegiatan --</option>
+            <option value="BPH">BPH</option>
+            <option value="Pendidikan dan Dakwah">Pendidikan dan Dakwah</option>
+            <option value="Syiar dan Pelayanan Umum">Syiar dan Pelayanan Umum</option>
+            <option value="Kaderisasi">Kaderisasi</option>
+            <option value="Media dan Komunikasi">Media dan Komunikasi</option>
+            <option value="Dana dan Usaha">Dana dan Usaha / Entrepreneur</option>
+            <option value="Kemuslimahan">Kemuslimahan</option>
+            <option value="Kesenian dan Olahraga">Kesenian dan Olahraga</option>
+            <option value="Hubungan Masyarakat">Hubungan Masyarakat</option>
+            <option value="Lainnya">Lainnya</option>
+        </select>
+    </div>
+</div>
+
+<!-- Calendar Area -->
+<div id="calendar-container">
+    <div id="calendar"></div>
+</div>
+
+<!-- Modal Tambah Kegiatan -->
+<div class="modal fade" id="tambahKegiatanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="{{ url_for('kalender_tambah') }}" method="POST">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Kegiatan Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Judul Kegiatan</label>
+                        <input type="text" name="judul" class="form-control" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Tanggal & Jam Mulai</label>
+                            <input type="datetime-local" name="tanggal_mulai" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Tanggal & Jam Selesai (Opsional)</label>
+                            <input type="datetime-local" name="tanggal_selesai" class="form-control">
+                            <small class="text-muted" style="font-size: 11px;">Kosongkan agar event tidak merentang panjang</small>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-light border-0 mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="fw-bold mb-2 text-primary"><i class="fas fa-sync-alt me-1"></i> Pengaturan Rutinan</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label>Tipe Berulang</label>
+                                    <select name="tipe_rutin" class="form-select" id="tipeRutin">
+                                        <option value="">Tidak Berulang</option>
+                                        <option value="Harian">Setiap Hari</option>
+                                        <option value="Mingguan">Setiap Minggu</option>
+                                        <option value="Bulanan">Setiap Bulan</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label>Batas Akhir Rutinan</label>
+                                    <input type="date" name="batas_rutin" class="form-control" id="batasRutin">
+                                    <small class="text-muted" style="font-size:11px;">*Wajib diisi jika berulang</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Divisi/Kategori</label>
+                        <select name="divisi" class="form-select" required>
+                            <option value="BPH">BPH</option>
+                            <option value="Pendidikan dan Dakwah">Pendidikan dan Dakwah</option>
+                            <option value="Syiar dan Pelayanan Umum">Syiar dan Pelayanan Umum</option>
+                            <option value="Kaderisasi">Kaderisasi</option>
+                            <option value="Media dan Komunikasi">Media dan Komunikasi</option>
+                            <option value="Dana dan Usaha">Dana dan Usaha / Entrepreneur</option>
+                            <option value="Kemuslimahan">Kemuslimahan</option>
+                            <option value="Kesenian dan Olahraga">Kesenian dan Olahraga</option>
+                            <option value="Hubungan Masyarakat">Hubungan Masyarakat</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Warna Blok Kalender</label>
+                            <input type="color" name="warna" class="form-control form-control-color w-100" value="#1D9E75">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Lokasi</label>
+                            <input type="text" name="lokasi" class="form-control" placeholder="Zoom / Ruang B1">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Deskripsi/Catatan</label>
+                        <textarea name="deskripsi" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitKegiatan">Simpan Kegiatan</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Detail/Hapus Kegiatan (Readonly) -->
+<div class="modal fade" id="detailKegiatanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailJudul">Detail Kegiatan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Waktu:</strong> <span id="detailWaktu"></span></p>
+                <p><strong>Divisi:</strong> <span class="badge bg-secondary" id="detailDivisi"></span></p>
+                <p><strong>Lokasi:</strong> <span id="detailLokasi"></span></p>
+                <p><strong>Deskripsi:</strong><br><span id="detailDeskripsi"></span></p>
+            </div>
+            <div class="modal-footer">
+                <form id="formHapus" method="POST" action="">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Hapus kegiatan ini dari kalender?');">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Script FullCalendar 6 -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var divisiFilter = document.getElementById('divisiFilter');
+    
+    // Inisialisasi Kalender
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+            today: 'Hari Ini',
+            month: 'Bulan',
+            week: 'Minggu',
+            day: 'Hari'
+        },
+        locale: 'id',
+        navLinks: true, // can click day/week names to navigate views
+        selectable: true,
+        selectMirror: true,
+        dateClick: function(info) {
+            // Membuka modal tambah kegiatan ketika klik tanggal kosong
+            var dateStr = info.dateStr;
+            if (dateStr.length === 10) {
+                dateStr += 'T08:00'; // Default jam 08:00 untuk dayGrid
+            }
+            document.querySelector('input[name="tanggal_mulai"]').value = dateStr;
+            var modal = new bootstrap.Modal(document.getElementById('tambahKegiatanModal'));
+            modal.show();
+        },
+        events: function(info, successCallback, failureCallback) {
+            // Fetch data dari API backend
+            var url = '{{ url_for("kalender_api") }}';
+            var filterValue = divisiFilter.value;
+            if (filterValue) {
+                url += '?divisi=' + encodeURIComponent(filterValue);
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    successCallback(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching events:', error);
+                    failureCallback(error);
+                });
+        },
+        eventClick: function(info) {
+            // Ketika event diklik, tampilkan detail modal
+            var eventObj = info.event;
+            document.getElementById('detailJudul').innerText = eventObj.title;
+            
+            var waktuStr = eventObj.start.toLocaleString('id-ID');
+            if (eventObj.end) {
+                waktuStr += ' s/d ' + eventObj.end.toLocaleString('id-ID');
+            }
+            document.getElementById('detailWaktu').innerText = waktuStr;
+            
+            document.getElementById('detailDivisi').innerText = eventObj.extendedProps.divisi || '-';
+            document.getElementById('detailLokasi').innerText = eventObj.extendedProps.lokasi || '-';
+            document.getElementById('detailDeskripsi').innerText = eventObj.extendedProps.deskripsi || '-';
+            
+            // Set action hapus
+            var formHapus = document.getElementById('formHapus');
+            formHapus.action = "/kalender/hapus/" + eventObj.id;
+            
+            var modal = new bootstrap.Modal(document.getElementById('detailKegiatanModal'));
+            modal.show();
+        }
+    });
+
+    calendar.render();
+
+    // Re-fetch events saat filter diubah
+    divisiFilter.addEventListener('change', function() {
+        calendar.refetchEvents();
+    });
+});
+</script>
+{% endblock %}

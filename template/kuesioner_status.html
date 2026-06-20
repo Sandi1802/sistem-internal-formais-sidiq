@@ -53,7 +53,7 @@
                     <tr>
                         <th width="5%">No</th>
                         <th width="20%">Penilai</th>
-                        <th width="15%">Departemen</th>
+                        <th width="15%">Divisi</th>
                         <th width="20%">Menilai</th>
                         <th width="20%">Kategori</th>
                         <th width="20%">Status</th>
@@ -63,8 +63,8 @@
                     {% for s in status_list %}
                     <tr>
                         <td>{{ loop.index }}</td>
-                        <td class="font-weight-bold">{{ s.karyawan_nama }}</td>
-                        <td>{{ s.departemen }}</td>
+                        <td class="font-weight-bold">{{ s.anggota_nama }}</td>
+                        <td>{{ s.divisi }}</td>
                         <td>{{ s.dinilai_nama }}</td>
                         <td>{{ s.kategori | capitalize | replace('_', ' ') }}</td>
                         <td>

@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+
+{% block title %}Booth Kejujuran - SIDIQ FORMAIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Manajemen Booth Kejujuran</h1>
+    
+    <!-- Cek apakah ada booth yang sedang buka -->
+    {% if booth_aktif %}
+        <a href="{{ url_for('ent_booth_close', id=booth_aktif.id_booth) }}" class="btn btn-warning">
+            <i class="fas fa-store-slash me-1"></i> Tutup Booth (Closing)
+        </a>
+    {% else %}
+        <a href="{{ url_for('ent_booth_open') }}" class="btn btn-primary">
+            <i class="fas fa-store me-1"></i> Buka Booth (Opening)
+        </a>
+    {% endif %}
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Riwayat Laporan Booth Kejujuran</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle datatable" id="dataTable" width="100%" cellspacing="0">
+                <thead class="table-light">
+                    <tr>
+                        <th>No</th>
+                        <th>Tanggal</th>
+                        <th>Status</th>
+                        <th>Waktu Buka / Tutup</th>
+                        <th>Petugas</th>
+                        <th>Uang Fisik</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in booth_list %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ b.tanggal }}</td>
+                        <td>
+                            {% if b.status == 'Buka' %}
+                                <span class="badge bg-success">Sedang Buka</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Tutup</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="d-block text-success">Buka: {{ b.waktu_buka }}</small>
+                            {% if b.waktu_tutup %}
+                                <small class="d-block text-danger">Tutup: {{ b.waktu_tutup }}</small>
+                            {% else %}
+                                <small class="d-block text-muted">Tutup: -</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="d-block">Opening: <strong>{{ b.opening_by }}</strong></small>
+                            {% if b.closing_by %}
+                                <small class="d-block">Closing: <strong>{{ b.closing_by }}</strong></small>
+                            {% else %}
+                                <small class="d-block">Closing: -</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if b.status == 'Tutup' %}
+                                Rp {{ "{:,.0f}".format(b.uang_fisik) }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-info text-white" onclick="copyFormatWA('{{ b.id_booth }}')">
+                                <i class="fab fa-whatsapp"></i> Salin Format
+                            </button>
+                            <!-- Gunakan textarea yang disembunyikan agar spasi dan enter tetap terjaga -->
+                            <textarea id="wa-format-{{ b.id_booth }}" style="position: absolute; left: -9999px;">{{ b.format_wa }}</textarea>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function copyFormatWA(id) {
+        var textToCopy = document.getElementById('wa-format-' + id).value;
+        
+        navigator.clipboard.writeText(textToCopy).then(function() {
+            alert('Format laporan berhasil disalin! Silakan paste di grup WhatsApp.');
+        }, function(err) {
+            console.error('Gagal menyalin text: ', err);
+            alert('Gagal menyalin format.');
+        });
+    }
+</script>
+{% endblock %}

@@ -2,9 +2,9 @@
 <html lang="id">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Sistem Penilaian 360° Core Values AKHLAK — PT Energi Nusantara">
-  <title>{% block title %}AKHLAK 360°{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="SIDIQ — System Integrated Digital Islamic Quality | FORMAIS">
+  <title>{% block title %}SIDIQ FORMAIS{% endblock %}</title>
 
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +21,9 @@
   <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
   <link href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css" rel="stylesheet">
 
+  <!-- FullCalendar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+
   <!-- Custom CSS -->
   <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 
@@ -33,94 +36,176 @@
     <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <img src="{{ url_for('static', filename='admin/img/Logo-AKHLAK-BUMN-PNG-Putih-Free-Download-jasalogocepatcom-01.png') }}" alt="Logo AKHLAK" class="sidebar-brand-img">
-      </div>
-
-      <div class="sidebar-user">
-        <div class="user-avatar"><i class="fas fa-user-circle"></i></div>
-        <div class="user-info">
-          <span class="user-name">{{ session.get('user_name', 'User') }}</span>
-          <span class="user-role">{{ session.get('role', '')|upper }}</span>
+        <div style="display:flex;align-items:center;gap:10px;padding:4px 0;">
+          <img src="{{ url_for('static', filename='admin/img/logo-formais.png') }}" alt="FORMAIS" style="width:40px;height:40px;border-radius:10px;object-fit:contain;flex-shrink:0;">
+          <div>
+            <div style="font-size:16px;font-weight:800;color:#1D9E75;line-height:1.1;">SIDIQ</div>
+            <div style="font-size:10px;color:#64748b;font-weight:500;">FORMAIS</div>
+          </div>
         </div>
       </div>
+
+
 
       <nav class="sidebar-nav">
-        {% if session.get('role') == 'hc' %}
-        <!-- ── HC Menu ── -->
+        <!-- Dashboard (Global) -->
         <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
           <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
         </a>
-        <a href="{{ url_for('profile') }}" class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}">
-          <i class="fas fa-user-circle"></i><span>Profil Saya</span>
-        </a>
 
-        {% set is_manajemen_active = request.endpoint and ('karyawan' in request.endpoint or request.endpoint in ['kuesioner', 'kuesioner_kelola', 'kuesioner_status']) %}
-        <a class="nav-link {% if not is_manajemen_active %}collapsed{% endif %}" data-bs-toggle="collapse" href="#collapseManajemen" role="button" aria-expanded="{{ 'true' if is_manajemen_active else 'false' }}" aria-controls="collapseManajemen">
-          <i class="fas fa-folder"></i><span>Manajemen</span>
-          <i class="fas fa-chevron-left submenu-icon"></i>
-        </a>
-        <div class="collapse {% if is_manajemen_active %}show{% endif %}" id="collapseManajemen">
-          <div class="nav-submenu">
-            <a href="{{ url_for('karyawan_list') }}" class="nav-link {% if request.endpoint and 'karyawan' in request.endpoint %}active{% endif %}">
-              <i class="fas fa-users"></i><span>Karyawan</span>
+        {% if user_role in ['HC', 'TIM IT', 'ADMIN', 'BENDAHARA', 'ENTREPRENEUR'] %}
+        <!-- Shortcut Booth Kejujuran (Global) -->
+        <div class="px-3 mt-3 mb-2">
+          {% if global_booth_aktif %}
+            <a href="{{ url_for('ent_booth_close', id=global_booth_aktif['id_booth']) }}" class="btn btn-warning w-100 text-start text-dark fw-bold" style="border-radius: 8px;">
+              <i class="fas fa-store-slash me-2"></i> Tutup Booth
             </a>
-            <a href="{{ url_for('kuesioner') }}" class="nav-link {% if request.endpoint and 'kuesioner' in request.endpoint and request.endpoint != 'kuesioner_status' %}active{% endif %}">
-              <i class="fas fa-clipboard-list"></i><span>Kuesioner</span>
+          {% else %}
+            <a href="{{ url_for('ent_booth_open') }}" class="btn btn-success w-100 text-start text-white fw-bold" style="border-radius: 8px; background-color: #1D9E75; border:none;">
+              <i class="fas fa-store me-2"></i> Buka Booth
             </a>
-            <a href="{{ url_for('penilai_config') }}" class="nav-link {% if request.endpoint == 'penilai_config' %}active{% endif %}">
-              <i class="fas fa-users-cog"></i><span>Konfigurasi Penilai</span>
-            </a>
-            <a href="{{ url_for('kuesioner_status') }}" class="nav-link {% if request.endpoint == 'kuesioner_status' %}active{% endif %}">
-              <i class="fas fa-tasks"></i><span>Status Pengisian</span>
-            </a>
-          </div>
+          {% endif %}
         </div>
+        {% endif %}
 
-        {% set is_analisis_active = request.endpoint in ['hasil', 'hasil_detail'] %}
-        <a class="nav-link {% if not is_analisis_active %}collapsed{% endif %}" data-bs-toggle="collapse" href="#collapseAnalisis" role="button" aria-expanded="{{ 'true' if is_analisis_active else 'false' }}" aria-controls="collapseAnalisis">
-          <i class="fas fa-chart-pie"></i><span>Analisis</span>
-          <i class="fas fa-chevron-left submenu-icon"></i>
-        </a>
-        <div class="collapse {% if is_analisis_active %}show{% endif %}" id="collapseAnalisis">
-          <div class="nav-submenu">
-            <a href="{{ url_for('hasil') }}" class="nav-link {% if request.endpoint == 'hasil' or request.endpoint == 'hasil_detail' %}active{% endif %}">
-              <i class="fas fa-chart-bar"></i><span>Hasil Penilaian</span>
-            </a>
-          </div>
-        </div>
-
+        <!-- Form Booth Kejujuran (Global) -->
+        {% if global_booth_aktif %}
+        <a href="{{ url_for('ent_booth_close', id=global_booth_aktif['id_booth']) }}" class="nav-link {% if request.endpoint == 'ent_booth_close' %}active{% endif %}">
         {% else %}
-        <!-- ── Karyawan Menu ── -->
-        <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
-          <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
-        </a>
-        <a href="{{ url_for('profile') }}" class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}">
-          <i class="fas fa-user-circle"></i><span>Profil Saya</span>
+        <a href="{{ url_for('ent_booth_open') }}" class="nav-link {% if request.endpoint == 'ent_booth_open' %}active{% endif %}">
+        {% endif %}
+          <i class="fas fa-store-alt"></i><span>Booth Kejujuran</span>
         </a>
 
-        {% set is_penilaian_active = request.endpoint in ['kuesioner', 'kuesioner_isi', 'hasil', 'hasil_detail'] %}
-        <a class="nav-link {% if not is_penilaian_active %}collapsed{% endif %}" data-bs-toggle="collapse" href="#collapsePenilaian" role="button" aria-expanded="{{ 'true' if is_penilaian_active else 'false' }}" aria-controls="collapsePenilaian">
-          <i class="fas fa-clipboard-check"></i><span>Penilaian</span>
+        {% set user_role = session.get('role', 'ANGGOTA') | upper %}
+
+        {% if user_role in ['HC', 'TIM IT', 'ADMIN'] %}
+        <!-- ═══ MENU KHUSUS ═══ -->
+        {% if user_role == 'HC' %}
+        <!-- Manajemen Role -->
+        <a href="{{ url_for('role_list') }}" class="nav-link {% if request.endpoint == 'role_list' %}active{% endif %}">
+          <i class="fas fa-user-shield"></i><span>Manajemen Role</span>
+        </a>
+        {% endif %}
+        {% endif %}
+
+        {% if user_role in ['HC', 'TIM IT', 'ADMIN', 'SEKRE'] %}
+        <!-- Tim Sekretariat Wrapper -->
+        {% set is_sekre_active = request.endpoint and ('anggota' in request.endpoint or 'persuratan' in request.endpoint or 'proker' in request.endpoint or 'inventaris' in request.endpoint or 'peminjaman' in request.endpoint or 'arsip' in request.endpoint or 'absensi' in request.endpoint) %}
+        <a class="nav-link {% if not is_sekre_active %}collapsed{% else %}active{% endif %}" data-bs-toggle="collapse" href="#collapseSekre" role="button" aria-expanded="{{ 'true' if is_sekre_active else 'false' }}">
+          <i class="fas fa-folder-open"></i><span>Tim Sekretariat</span>
           <i class="fas fa-chevron-left submenu-icon"></i>
         </a>
-        <div class="collapse {% if is_penilaian_active %}show{% endif %}" id="collapsePenilaian">
+        <div class="collapse {% if is_sekre_active %}show{% endif %}" id="collapseSekre">
           <div class="nav-submenu">
-            <a href="{{ url_for('kuesioner') }}" class="nav-link {% if request.endpoint == 'kuesioner' or request.endpoint == 'kuesioner_isi' %}active{% endif %}">
-              <i class="fas fa-clipboard-list"></i><span>Kuesioner Saya</span>
+            
+            {% if user_role in ['HC', 'TIM IT', 'ADMIN'] %}
+            <!-- Anggota -->
+            <a href="{{ url_for('anggota_list', tipe='Anggota') }}" class="nav-link {% if request.args.get('tipe') == 'Anggota' or (request.endpoint=='anggota_list' and not request.args.get('tipe')) %}active{% endif %}">
+              <i class="fas fa-user"></i><span>Data Anggota</span>
             </a>
-            <a href="{{ url_for('hasil') }}" class="nav-link {% if request.endpoint == 'hasil' or request.endpoint == 'hasil_detail' %}active{% endif %}">
-              <i class="fas fa-chart-bar"></i><span>Hasil Penilaian</span>
+            <a href="{{ url_for('anggota_list', tipe='Pengurus') }}" class="nav-link {% if request.args.get('tipe') == 'Pengurus' %}active{% endif %}">
+              <i class="fas fa-user-tie"></i><span>Data Pengurus</span>
             </a>
+            <a href="{{ url_for('anggota_list', tipe='Calon Anggota') }}" class="nav-link {% if request.args.get('tipe') == 'Calon Anggota' %}active{% endif %}">
+              <i class="fas fa-user-clock"></i><span>Calon Anggota</span>
+            </a>
+            <a href="{{ url_for('anggota_list', tipe='Anak Magang') }}" class="nav-link {% if request.args.get('tipe') == 'Anak Magang' %}active{% endif %}">
+              <i class="fas fa-user-graduate"></i><span>Anak Magang</span>
+            </a>
+            {% endif %}
+
+            <!-- Persuratan -->
+            <a href="{{ url_for('persuratan') }}" class="nav-link {% if request.endpoint and 'persuratan' in request.endpoint %}active{% endif %}">
+              <i class="fas fa-envelope-open-text"></i><span>Persuratan</span>
+            </a>
+
+            <!-- Program Kerja -->
+            <a href="{{ url_for('proker_list') }}" class="nav-link {% if request.endpoint and 'proker' in request.endpoint %}active{% endif %}">
+              <i class="fas fa-project-diagram"></i><span>Program Kerja</span>
+            </a>
+
+            <!-- Inventaris -->
+            <a href="{{ url_for('inventaris_list') }}" class="nav-link {% if request.endpoint == 'inventaris_list' %}active{% endif %}">
+              <i class="fas fa-box"></i><span>Data Barang</span>
+            </a>
+            <a href="#" class="nav-link {% if request.endpoint == 'peminjaman_list' %}active{% endif %}">
+              <i class="fas fa-calendar-check"></i><span>Peminjaman</span>
+            </a>
+
+            <!-- Repository/Arsip -->
+            <a href="#" class="nav-link {% if request.endpoint and 'arsip' in request.endpoint|default('') %}active{% endif %}">
+              <i class="fas fa-archive"></i><span>Repository/Arsip</span>
+            </a>
+
+            <!-- Absensi Digital -->
+            <a href="{{ url_for('absensi_list') }}" class="nav-link {% if request.endpoint and 'absensi' in request.endpoint|default('') %}active{% endif %}">
+              <i class="fas fa-qrcode"></i><span>Absensi Digital</span>
+            </a>
+
           </div>
         </div>
         {% endif %}
+
+        <div class="nav-section-title">Program & Kegiatan</div>
+
+        <!-- Kalender Kegiatan -->
+        {% set is_kalender_active = request.endpoint and 'kalender' in request.endpoint %}
+        <a href="{{ url_for('kalender') }}" class="nav-link {% if is_kalender_active %}active{% endif %}">
+          <i class="fas fa-calendar-alt"></i><span>Kalender Kegiatan</span>
+        </a>
+
+        <!-- Request Desain -->
+        {% set is_desain_active = request.endpoint and 'desain' in request.endpoint %}
+        <a href="{{ url_for('request_desain_list') }}" class="nav-link {% if is_desain_active %}active{% endif %}">
+          <i class="fas fa-palette"></i><span>Request Desain</span>
+        </a>
+
+        <!-- Fitur Presentasi -->
+        {% set is_pres_active = request.endpoint and 'presentasi' in request.endpoint %}
+        <a href="{{ url_for('presentasi_list') }}" class="nav-link {% if is_pres_active %}active{% endif %}">
+          <i class="fas fa-desktop"></i><span>Fitur Presentasi</span>
+        </a>
+
+        {% if user_role in ['HC', 'TIM IT', 'ADMIN', 'SEKRE', 'BENDAHARA', 'ENTREPRENEUR'] %}
+        <div class="nav-section-title">Keuangan & Bisnis</div>
+        {% endif %}
+
+        {% if user_role in ['HC', 'TIM IT', 'ADMIN', 'SEKRE', 'BENDAHARA'] %}
+        <!-- Keuangan -->
+        {% set is_keuangan_active = request.endpoint and 'keuangan' in request.endpoint %}
+        <a class="nav-link {% if not is_keuangan_active %}collapsed{% else %}active{% endif %}" href="#" data-bs-toggle="collapse" data-bs-target="#collapseKeuangan" aria-expanded="{% if is_keuangan_active %}true{% else %}false{% endif %}">
+          <i class="fas fa-money-bill-wave"></i><span>Keuangan</span>
+          <i class="fas fa-chevron-left submenu-icon"></i>
+        </a>
+        <div class="collapse {% if is_keuangan_active %}show{% endif %}" id="collapseKeuangan">
+          <div class="nav-submenu">
+            <a href="{{ url_for('keuangan_list', tab='Arus Kas') }}" class="nav-link {% if request.args.get('tab') == 'Arus Kas' or not request.args.get('tab') %}active{% endif %}"><i class="fas fa-exchange-alt"></i><span>Arus Kas</span></a>
+            <a href="{{ url_for('keuangan_list', tab='Pemasukan') }}" class="nav-link {% if request.args.get('tab') == 'Pemasukan' %}active{% endif %}"><i class="fas fa-hand-holding-usd"></i><span>Pemasukan</span></a>
+            <a href="{{ url_for('keuangan_list', tab='Pengeluaran') }}" class="nav-link {% if request.args.get('tab') == 'Pengeluaran' %}active{% endif %}"><i class="fas fa-money-check-alt"></i><span>Pengeluaran</span></a>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if user_role in ['HC', 'TIM IT', 'ADMIN', 'BENDAHARA', 'ENTREPRENEUR'] %}
+        <!-- Tim Entrepreneur -->
+        {% set is_entrepreneur_active = request.endpoint and ('entrepreneur' in request.endpoint or 'kas_ent' in request.endpoint) %}
+        <a class="nav-link {% if not is_entrepreneur_active %}collapsed{% else %}active{% endif %}" href="#" data-bs-toggle="collapse" data-bs-target="#collapseEnt" aria-expanded="{% if is_entrepreneur_active %}true{% else %}false{% endif %}">
+          <i class="fas fa-store"></i><span>Tim Entrepreneur</span>
+          <i class="fas fa-chevron-left submenu-icon"></i>
+        </a>
+        <div class="collapse {% if is_entrepreneur_active %}show{% endif %}" id="collapseEnt">
+          <div class="nav-submenu">
+            <a href="{{ url_for('entrepreneur_list') }}" class="nav-link {% if request.endpoint and 'entrepreneur' in request.endpoint %}active{% endif %}"><i class="fas fa-box-open"></i><span>Barang & Penjualan</span></a>
+            <a href="#" class="nav-link {% if request.endpoint and 'kas_ent' in request.endpoint %}active{% endif %}"><i class="fas fa-wallet"></i><span>Kas Entrepreneur</span></a>
+          </div>
+        </div>
+        {% endif %}
+
+
+
       </nav>
 
-      <div class="sidebar-footer">
-        <a href="{{ url_for('logout') }}" class="nav-link logout-link">
-          <i class="fas fa-sign-out-alt"></i><span>Logout</span>
-        </a>
-      </div>
     </aside>
 
     <!-- ===== MAIN CONTENT ===== -->
@@ -132,8 +217,35 @@
         <div class="topbar-right">
           <div class="topbar-marquee-container">
             <div class="topbar-marquee-content">
-              <img src="{{ url_for('static', filename='admin/img/Logo-AKHLAK-BUMN-PNG-Putih-Free-Download-jasalogocepatcom-01.png') }}" alt="Logo" class="topbar-logo">
-              <span class="topbar-greeting">Selamat datang, <strong>{{ session.get('user_name', 'User') }}</strong></span>
+              <img src="{{ url_for('static', filename='admin/img/logoKampus.png') }}" alt="Kampus" style="height:22px;width:auto;margin-right:8px;vertical-align:middle;">
+              <i class="fas fa-mosque" style="color:#1D9E75;font-size:18px;margin-right:10px;"></i>
+              <span class="topbar-greeting">Assalamu'alaikum Warahmatullahi Wabarakatuh, <strong>{{ session.get('user_name', 'User') }}</strong> — SIDIQ FORMAIS</span>
+              <i class="fas fa-mosque" style="color:#1D9E75;font-size:18px;margin-left:10px;"></i>
+            </div>
+          </div>
+
+          <div class="topbar-actions">
+            <!-- Profile Dropdown -->
+            <div class="topbar-action-item dropdown">
+              <a href="#" class="nav-icon dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-user-circle" style="font-size: 24px;"></i>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end profile-dropdown-menu" aria-labelledby="profileDropdown">
+                <li class="profile-dropdown-header">
+                  Halo, {{ session.get('user_name', 'User')|upper }}
+                </li>
+                <li>
+                  <a class="profile-dropdown-item" href="{{ url_for('profile') }}">
+                    <i class="fas fa-user"></i> Profile
+                  </a>
+                </li>
+                <li><hr class="profile-dropdown-divider"></li>
+                <li>
+                  <a class="profile-dropdown-item" href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -156,7 +268,7 @@
       </div>
 
       <footer class="main-footer">
-        <span>&copy; 2026 PT Energi Nusantara &mdash; Sistem Penilaian 360&deg; Core Values AKHLAK</span>
+        <span>&copy; 2026 FORMAIS &mdash; SIDIQ (System Integrated Digital Islamic Quality)</span>
       </footer>
     </main>
   </div>
@@ -177,7 +289,7 @@
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 
   <script>
-    // Sidebar toggle (desktop = collapse, mobile = overlay)
+    // Sidebar toggle
     var toggle = document.getElementById('sidebarToggle');
     var wrapper = document.getElementById('appWrapper');
     if (toggle) {
@@ -189,8 +301,6 @@
         }
       });
     }
-
-    // Close sidebar on overlay click (mobile)
     wrapper.addEventListener('click', function (e) {
       if (window.innerWidth <= 992 && wrapper.classList.contains('sidebar-open') && !e.target.closest('.sidebar') && !e.target.closest('#sidebarToggle')) {
         wrapper.classList.remove('sidebar-open');
@@ -201,14 +311,14 @@
     $(document).ready(function () {
       if ($('.datatable').length) {
         $('.datatable').DataTable({
-          dom: "<'row mb-2'<'col-sm-12 col-md-6'><'col-sm-12 col-md-6 d-flex justify-content-end'B>>" +
-               "<'row mb-2'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-end'f>>" +
+          dom: "<'row mb-2'<'col-sm-12 col-md-6'><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center'B>>" +
+               "<'row mb-2'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6 d-flex justify-content-md-end justify-content-center'f>>" +
                "<'row'<'col-sm-12'tr>>" +
                "<'row mt-3'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
           buttons: [
             { extend: 'copy', text: '<i class="fas fa-copy"></i> Copy', className: 'btn btn-sm btn-dt-copy', init: function(api, node, config) { $(node).removeClass('btn-secondary'); } },
             { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Excel', className: 'btn btn-sm btn-dt-excel', init: function(api, node, config) { $(node).removeClass('btn-secondary'); } },
-            { extend: 'csv', text: '<i class="fas fa-file-word"></i> Word', className: 'btn btn-sm btn-dt-word', init: function(api, node, config) { $(node).removeClass('btn-secondary'); } },
+            { extend: 'csv', text: '<i class="fas fa-file-csv"></i> CSV', className: 'btn btn-sm btn-dt-word', init: function(api, node, config) { $(node).removeClass('btn-secondary'); } },
             { extend: 'pdf', text: '<i class="fas fa-file-pdf"></i> PDF', className: 'btn btn-sm btn-dt-pdf', init: function(api, node, config) { $(node).removeClass('btn-secondary'); } }
           ],
           language: {

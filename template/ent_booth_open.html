@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block title %}Opening Booth - SIDIQ FORMAIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Opening Booth Kejujuran</h1>
+    <a href="{{ url_for('ent_booth') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Kembali
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-primary text-white">
+        <h6 class="m-0 font-weight-bold">Form Input Stok Awal (Opening)</h6>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('ent_booth_open') }}" method="POST">
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Nama Petugas Opening</label>
+                    <input type="text" name="opening_by" class="form-control" value="{{ session['user_name'] }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Tanggal</label>
+                    <input type="date" name="tanggal" class="form-control" value="{{ today_date }}" required>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-1"></i> <strong>Pengecekan Stok!</strong><br>
+                Di bawah ini adalah sisa stok barang dari sistem. Silakan sesuaikan angkanya dengan jumlah fisik barang yang Anda tata di Booth pagi ini.
+            </div>
+
+            <div class="list-group mb-4">
+                {% for p in produk %}
+                <div class="list-group-item py-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong class="fs-5 text-dark">{{ p.nama_produk }}</strong>
+                        <span class="badge bg-secondary rounded-pill">Stok Gudang: {{ p.stok }}</span>
+                    </div>
+                    <input type="hidden" name="id_produk[]" value="{{ p.id_produk }}">
+                    <input type="hidden" name="nama_produk[]" value="{{ p.nama_produk }}">
+                    
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light">Stok Awal</span>
+                        <input type="number" name="stok_awal[]" class="form-control text-center fw-bold text-primary" value="{{ p.stok }}" min="0" required inputmode="numeric">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-4 text-end">
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="fas fa-store"></i> Mulai Buka Booth
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

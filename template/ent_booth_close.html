@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{% block title %}Closing Booth - SIDIQ FORMAIS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Closing Booth Kejujuran</h1>
+    <a href="{{ url_for('ent_booth') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Kembali
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-warning text-dark">
+                <h6 class="m-0 font-weight-bold">Form Input Stok Sisa (Closing)</h6>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('ent_booth_close', id=booth.id_booth) }}" method="POST">
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Nama Petugas Closing</label>
+                            <input type="text" name="closing_by" class="form-control" value="{{ session['user_name'] }}" required>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i> <strong>Laporan Penjualan!</strong><br>
+                        Silakan hitung sisa barang di kotak sekarang dan masukkan angkanya. Sistem akan otomatis menghitung jumlah barang yang terjual.
+                    </div>
+
+                    <div class="list-group mb-4">
+                        {% for item in data_laporan['items'] %}
+                        <div class="list-group-item py-3 bg-light border-warning">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="fs-5 text-dark">{{ item.nama }}</strong>
+                                <span class="badge bg-secondary rounded-pill">Stok Awal: {{ item.stok_awal }}</span>
+                            </div>
+                            <input type="hidden" name="id_produk[]" value="{{ item.id }}">
+                            <input type="hidden" name="stok_awal_{{ item.id }}" value="{{ item.stok_awal }}">
+                            
+                            <div class="input-group input-group-lg mt-2">
+                                <span class="input-group-text bg-warning text-dark fw-bold border-warning">Sisa Saat Ini</span>
+                                <input type="number" name="stok_sisa_{{ item.id }}" class="form-control text-center fw-bold fs-4 text-danger border-warning" value="{{ item.stok_awal }}" min="0" max="{{ item.stok_awal }}" required inputmode="numeric">
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <hr>
+                    <h5 class="fw-bold text-success mb-3">Setoran Uang Fisik</h5>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Total Uang di Kotak (Rp)</label>
+                        <input type="number" name="uang_fisik" class="form-control form-control-lg text-success fw-bold" placeholder="Contoh: 18000" required>
+                        <small class="text-muted">Masukkan total uang tunai yang terkumpul di dalam kotak/toples hari ini.</small>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-warning btn-lg px-5 text-dark fw-bold" onclick="return confirm('Apakah Anda yakin data sisa stok dan uang fisik sudah benar? Data akan dikunci setelah closing.');">
+                            <i class="fas fa-lock"></i> Selesai & Tutup Booth
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Info Sesi Saat Ini</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Tanggal
+                        <span class="fw-bold">{{ booth.tanggal }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Petugas Opening
+                        <span class="fw-bold">{{ booth.opening_by }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Waktu Buka
+                        <span class="fw-bold text-success">{{ booth.waktu_buka }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

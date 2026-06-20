@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+{% block title %}Riwayat Gamifikasi{% endblock %}
+{% block content %}
+<div class="page-header animate-in" style="--delay: 1">
+    <h1>Riwayat Poin & Gamifikasi</h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-custom">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            {% if session['role'].upper() in ['ADMIN', 'HC'] %}
+            <li class="breadcrumb-item"><a href="{{ url_for('anggota_list') }}">Anggota</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">Riwayat Poin</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card animate-in mb-4" style="--delay: 2">
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary text-white d-flex align-items-center justify-content-center rounded-circle me-3 shadow-sm" style="width: 60px; height: 60px; font-size: 24px;">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div>
+                <h4 class="mb-1 fw-bold">{{ anggota.nama }}</h4>
+                <div class="text-muted"><i class="fas fa-briefcase me-1"></i> {{ anggota.jabatan }} | {{ anggota.divisi }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card animate-in" style="--delay: 3">
+    <div class="card-header-custom d-flex justify-content-between align-items-center">
+        <h5 class="m-0 font-weight-bold text-primary"><i class="fas fa-history me-2"></i>Riwayat Penilaian & Poin</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-container">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th width="5%" class="text-center">No</th>
+                        <th width="15%">Tanggal</th>
+                        <th width="10%" class="text-center">Poin</th>
+                        <th width="40%">Keterangan / Komentar</th>
+                        <th width="15%">Pemberi Poin</th>
+                        {% if user_role in ['HC', 'TIM IT', 'ADMIN'] %}
+                        <th width="10%" class="text-center">Aksi</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in riwayat %}
+                    <tr>
+                        <td class="text-center">{{ loop.index }}</td>
+                        <td>{{ r.tanggal.strftime('%d %b %Y %H:%M') if r.tanggal else '-' }}</td>
+                        <td class="text-center">
+                            {% if r.jumlah_poin > 0 %}
+                            <span class="badge bg-success shadow-sm">+{{ r.jumlah_poin }}</span>
+                            {% elif r.jumlah_poin < 0 %}
+                            <span class="badge bg-danger shadow-sm">{{ r.jumlah_poin }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">0</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ r.keterangan }}</td>
+                        <td>{{ r.pemberi_nama or 'Sistem' }}</td>
+                        {% if user_role in ['HC', 'TIM IT', 'ADMIN'] %}
+                        <td class="text-center">
+                            <form action="{{ url_for('hapus_riwayat_poin', id_poin=r.id_poin) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus riwayat poin ini? Total poin anggota akan ikut berkurang/bertambah sesuai nominal yang dihapus.');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Riwayat Poin">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-3x mb-3 text-light"></i><br>
+                            Belum ada riwayat poin.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

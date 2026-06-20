@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login — AKHLAK 360°</title>
+  <title>Login — SIDIQ FORMAIS</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,26 +20,32 @@
     <div class="bg-dots"></div>
 
     <div class="login-container">
-      <!-- Left side: Branding (Text on background) -->
+      <!-- Left side: Branding -->
       <div class="login-left">
-        <div class="login-badge">Penilaian 360&deg;</div>
-        <h1 class="login-title">Penilaian Kinerja<br>360&deg; Core Values</h1>
-        
-        <!-- Custom AKHLAK Logo -->
-        <div class="logo-akhlak-container">
-          <img src="{{ url_for('static', filename='admin/img/Logo-AKHLAK-BUMN-PNG-Putih-Free-Download-jasalogocepatcom-01.png') }}" alt="Logo AKHLAK" class="logo-akhlak-img">
+        <div class="login-badge">SIDIQ — System Integrated Digital Islamic Quality</div>
+        <h1 class="login-title">Platform Manajemen<br>Organisasi</h1>
+
+        <!-- Logo / Icon area -->
+        <div class="logo-akhlak-container" style="margin-top: 20px;">
+          <div style="display:flex;align-items:center;gap:15px;">
+            <img src="{{ url_for('static', filename='admin/img/logo-formais.png') }}" alt="Logo Formais" style="height: 80px; width: auto; object-fit: contain; mix-blend-mode: multiply;">
+            <div>
+              <div style="font-size:26px;font-weight:900;color:#1D9E75;letter-spacing:-0.5px;line-height:1.2;">FORMAIS</div>
+              <div style="font-size:13px;color:#64748b;font-weight:600;letter-spacing:0.5px;">Forum Mahasiswa Islam</div>
+            </div>
+          </div>
         </div>
       </div>
       
       <!-- Right side: Form (White Card) -->
       <div class="login-right">
         <div class="login-form-card">
-          <h2 class="form-title">Welcome Back !</h2>
+          <h2 class="form-title">Assalamu'alaikum! 👋</h2>
           
           {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
           {% for category, message in messages %}
-          <div style="background:{% if category == 'danger' %}#fee2e2{% else %}#dbeafe{% endif %};color:{% if category == 'danger' %}#991b1b{% else %}#1e40af{% endif %};padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
+          <div style="background:{% if category == 'danger' %}#fee2e2{% else %}#d1fae5{% endif %};color:{% if category == 'danger' %}#991b1b{% else %}#065f46{% endif %};padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
             <i class="fas {% if category == 'danger' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
             {{ message }}
           </div>
@@ -49,14 +55,14 @@
 
           <form class="login-form" method="POST" action="{{ url_for('login') }}">
             <div class="input-group-custom">
-              <div class="input-icon"><i class="far fa-envelope"></i></div>
-              <input type="text" name="username" placeholder="Email or NIP" required autocomplete="username" autofocus>
+              <div class="input-icon"><i class="far fa-user"></i></div>
+              <input type="text" name="username" placeholder="Username atau NIM" required autocomplete="username" autofocus>
             </div>
 
             <div class="input-group-custom">
               <div class="input-icon"><i class="fas fa-lock"></i></div>
-              <input type="password" name="password" placeholder="Password" required autocomplete="current-password">
-              <div class="input-icon-right"><i class="far fa-eye"></i></div>
+              <input type="password" name="password" id="loginPassword" placeholder="Password" required autocomplete="current-password">
+              <div class="input-icon-right" onclick="togglePw()"><i class="far fa-eye" id="eyeIcon"></i></div>
             </div>
 
             <button type="submit" class="btn-login-submit">Login</button>
@@ -65,5 +71,13 @@
       </div>
     </div>
   </div>
+
+  <script>
+  function togglePw(){
+    var p=document.getElementById('loginPassword'),e=document.getElementById('eyeIcon');
+    if(p.type==='password'){p.type='text';e.className='far fa-eye-slash';}
+    else{p.type='password';e.className='far fa-eye';}
+  }
+  </script>
 </body>
 </html>

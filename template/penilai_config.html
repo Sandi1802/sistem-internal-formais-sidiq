@@ -47,7 +47,7 @@
                 <thead>
                     <tr>
                         <th width="5%">No</th>
-                        <th>Karyawan yang Dinilai</th>
+                        <th>Anggota yang Dinilai</th>
                         <th>Penilai</th>
                         <th>Kategori</th>
                         <th width="10%">Aksi</th>
@@ -88,11 +88,11 @@
                 <div class="modal-body">
                     <input type="hidden" name="id_kuesioner" value="{{ id_kuesioner }}">
                     <div class="mb-3">
-                        <label class="form-label">Karyawan yang Dinilai</label>
+                        <label class="form-label">Anggota yang Dinilai</label>
                         <select name="id_dinilai" class="form-select" required>
-                            <option value="">-- Pilih Karyawan --</option>
-                            {% for k in karyawan %}
-                            <option value="{{ k.id_karyawan }}">{{ k.nip }} - {{ k.nama }}</option>
+                            <option value="">-- Pilih Anggota --</option>
+                            {% for k in anggota %}
+                            <option value="{{ k.id_anggota }}">{{ k.nim }} - {{ k.nama }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -100,8 +100,8 @@
                         <label class="form-label">Siapa yang Menilai?</label>
                         <select name="id_penilai" class="form-select" required>
                             <option value="">-- Pilih Penilai --</option>
-                            {% for k in karyawan %}
-                            <option value="{{ k.id_karyawan }}">{{ k.nip }} - {{ k.nama }}</option>
+                            {% for k in anggota %}
+                            <option value="{{ k.id_anggota }}">{{ k.nim }} - {{ k.nama }}</option>
                             {% endfor %}
                         </select>
                     </div>

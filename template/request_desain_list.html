@@ -1,0 +1,101 @@
+{% extends 'layout.html' %}
+
+{% block title %}SIDIQ - Request Desain{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold m-0"><i class="fas fa-palette text-primary me-2"></i> Request Desain</h2>
+        <p class="text-muted mt-2">Daftar permintaan pembuatan desain dari divisi dan anggota.</p>
+    </div>
+    <a href="{{ url_for('tambah_request_desain') }}" class="btn btn-primary fw-bold" style="border-radius: 8px;">
+        <i class="fas fa-plus me-2"></i> Ajukan Request
+    </a>
+</div>
+
+<div class="row">
+    {% for req in reqs %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm border-0" style="border-radius: 12px;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="fw-bold text-dark mb-0">{{ req.judul_desain }}</h5>
+                    {% if req.status == 'Menunggu' %}
+                        <span class="badge bg-warning text-dark px-3 py-2" style="border-radius: 6px;">{{ req.status }}</span>
+                    {% elif req.status == 'Dikerjakan' %}
+                        <span class="badge bg-info text-dark px-3 py-2" style="border-radius: 6px;">{{ req.status }}</span>
+                    {% elif req.status == 'Selesai' %}
+                        <span class="badge bg-success px-3 py-2" style="border-radius: 6px;">{{ req.status }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary px-3 py-2" style="border-radius: 6px;">{{ req.status }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3 text-muted" style="font-size: 14px;">
+                    <div><i class="fas fa-user-circle me-2"></i> <strong>Pemohon:</strong> {{ req.nama_pemohon }}</div>
+                    <div><i class="fas fa-tag me-2"></i> <strong>Jenis:</strong> {{ req.jenis_desain }}</div>
+                    <div><i class="fas fa-clock me-2"></i> <strong>Deadline:</strong> <span class="text-danger fw-bold">{{ req.deadline }}</span></div>
+                    <div><i class="fas fa-calendar-alt me-2"></i> <strong>Tgl Request:</strong> {{ req.tanggal_request.strftime('%Y-%m-%d') if req.tanggal_request else '-' }}</div>
+                </div>
+
+                <div class="p-3 bg-light rounded mb-3" style="font-size: 14px;">
+                    <strong class="d-block mb-1">Deskripsi/Konsep:</strong>
+                    {{ req.deskripsi }}
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    {% if req.link_referensi %}
+                    <a href="{{ req.link_referensi }}" target="_blank" class="btn btn-outline-secondary btn-sm" style="border-radius: 6px;">
+                        <i class="fas fa-link me-1"></i> File Referensi
+                    </a>
+                    {% endif %}
+                    
+                    {% if req.link_hasil %}
+                    <a href="{{ req.link_hasil }}" target="_blank" class="btn btn-success btn-sm fw-bold" style="border-radius: 6px;">
+                        <i class="fas fa-download me-1"></i> Hasil Desain
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-footer bg-white border-top-0 pt-0 pb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    {% set user_role = session.get('role', '') | upper %}
+                    
+                    <!-- Form Ubah Status khusus Media/HC/Admin/IT -->
+                    {% if user_role in ['HC', 'TIM IT', 'ADMIN', 'MEDIA'] %}
+                    <form action="{{ url_for('update_status_request_desain', id=req.id_request) }}" method="POST" class="d-flex gap-2">
+                        <select name="status" class="form-select form-select-sm" style="width: 130px; border-radius: 6px;">
+                            <option value="Menunggu" {% if req.status == 'Menunggu' %}selected{% endif %}>Menunggu</option>
+                            <option value="Dikerjakan" {% if req.status == 'Dikerjakan' %}selected{% endif %}>Dikerjakan</option>
+                            <option value="Revisi" {% if req.status == 'Revisi' %}selected{% endif %}>Revisi</option>
+                            <option value="Selesai" {% if req.status == 'Selesai' %}selected{% endif %}>Selesai</option>
+                        </select>
+                        <!-- Input link hasil jika ingin submit link sekalian update status Selesai -->
+                        <div class="input-group input-group-sm" style="width: 200px;">
+                            <input type="text" name="link_hasil" class="form-control" placeholder="Link GDrive Hasil" value="{{ req.link_hasil or '' }}" style="border-radius: 6px 0 0 6px;">
+                            <button class="btn btn-primary" type="submit" style="border-radius: 0 6px 6px 0;"><i class="fas fa-save"></i></button>
+                        </div>
+                    </form>
+                    {% else %}
+                        <div></div>
+                    {% endif %}
+
+                    {% if req.id_pemohon == session['user_id'] or user_role in ['HC', 'TIM IT', 'ADMIN'] %}
+                    <a href="{{ url_for('hapus_request_desain', id=req.id_request) }}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Yakin ingin menghapus request desain ini?')" style="border-radius: 6px;">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5 text-muted">
+        <i class="fas fa-paint-brush fa-3x mb-3 text-light"></i>
+        <h5>Belum ada request desain.</h5>
+        <p>Jadilah yang pertama mengajukan permintaan desain kreatif untuk organisasi kita!</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
