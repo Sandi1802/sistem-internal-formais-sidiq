@@ -3,3 +3,5 @@ pymysql
 reportlab
 pandas
 openpyxl
+gunicorn
+python-dotenv

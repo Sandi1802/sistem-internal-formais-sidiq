@@ -13,6 +13,9 @@ from reportlab.lib.units import mm
 import pymysql
 import time
 import uuid
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ─── Flask config ───────────────────────────────────────────────
 app = Flask(__name__, template_folder='template')
