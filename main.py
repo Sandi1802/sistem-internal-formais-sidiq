@@ -62,14 +62,21 @@ class MySQLWrapper:
         self.conn.close()
 
 def get_db():
-    return MySQLWrapper(
-        host=os.environ.get('MYSQLHOST', 'localhost'),
-        port=int(os.environ.get('MYSQLPORT', 3306)),
-        user=os.environ.get('MYSQLUSER', 'root'),
-        password=os.environ.get('MYSQLPASSWORD', ''),
-        database=os.environ.get('MYSQLDATABASE', 'sidiq18'),
-        cursorclass=pymysql.cursors.DictCursor
-    )
+    host = os.environ.get('MYSQLHOST', 'localhost')
+    kwargs = {
+        'host': host,
+        'port': int(os.environ.get('MYSQLPORT', 3306)),
+        'user': os.environ.get('MYSQLUSER', 'root'),
+        'password': os.environ.get('MYSQLPASSWORD', ''),
+        'database': os.environ.get('MYSQLDATABASE', 'sidiq18'),
+        'cursorclass': pymysql.cursors.DictCursor
+    }
+    # Tambahkan SSL otomatis jika database bukan di localhost (seperti TiDB/Aiven)
+    if host != 'localhost' and host != '127.0.0.1':
+        kwargs['ssl_verify_cert'] = True
+        kwargs['ssl_verify_identity'] = True
+        
+    return MySQLWrapper(**kwargs)
 
 # ─── Auth decorators ───────────────────────────────────────────
 def login_required(f):
