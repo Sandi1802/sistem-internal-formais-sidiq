@@ -201,7 +201,7 @@ def dashboard():
         FROM riwayat_poin r
         JOIN anggota a ON r.id_anggota = a.id_anggota
         WHERE MONTH(r.tanggal) = ? AND YEAR(r.tanggal) = ?
-        GROUP BY r.id_anggota
+        GROUP BY a.id_anggota, a.nama, a.foto_profil
         ORDER BY total_poin DESC
         LIMIT 5
     ''', (current_month, current_year)).fetchall()
@@ -944,7 +944,7 @@ def hasil():
                    ROUND(AVG(h.skor_akhir),2) as rata_rata
             FROM anggota k
             LEFT JOIN hasil_penilaian h ON k.id_anggota=h.id_anggota
-            GROUP BY k.id_anggota
+            GROUP BY k.id_anggota, k.nim, k.nama, k.jabatan, k.divisi
             ORDER BY rata_rata DESC
         ''').fetchall()
     else:
@@ -955,7 +955,7 @@ def hasil():
             FROM anggota k
             LEFT JOIN hasil_penilaian h ON k.id_anggota=h.id_anggota
             WHERE k.id_anggota=?
-            GROUP BY k.id_anggota
+            GROUP BY k.id_anggota, k.nim, k.nama, k.jabatan, k.divisi
         ''', (kid,)).fetchall()
     db.close()
     return render_template('hasil_penilaian.html', hasil_list=data)
