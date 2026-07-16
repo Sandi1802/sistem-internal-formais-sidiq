@@ -113,7 +113,7 @@
                                             <label class="form-label">Divisi</label>
                                             <select class="form-select" name="divisi">
                                                 <option value="">-- Pilih Divisi --</option>
-                                                {% set divisi_list = ['Ketua Umum', 'Sekretaris Jenderal', 'Bendahara Umum', 'Kaderisasi', 'Syiar Umat', 'Humas dan Media', 'Sekretariat', 'Entrepreneur'] %}
+                                                {% set divisi_list = ['Ketua Umum', 'Wakil Ketua Umum', 'Sekretaris', 'Bendahara', 'Kaderisasi', 'Syiar Umat', 'Kemuslimahan', 'Entrepreneur', 'Humas dan Media', 'PSDM', 'Sekretariat', 'Pengurus'] %}
                                                 {% for d in divisi_list %}
                                                 <option value="{{ d }}" {% if p.divisi == d %}selected{% endif %}>{{ d }}</option>
                                                 {% endfor %}
@@ -224,7 +224,7 @@
                         <label class="form-label">Divisi</label>
                         <select class="form-select" name="divisi">
                             <option value="">-- Pilih Divisi --</option>
-                            {% set divisi_list = ['Ketua Umum', 'Sekretaris Jenderal', 'Bendahara Umum', 'Kaderisasi', 'Syiar Umat', 'Humas dan Media', 'Sekretariat', 'Entrepreneur'] %}
+                            {% set divisi_list = ['Ketua Umum', 'Wakil Ketua Umum', 'Sekretaris', 'Bendahara', 'Kaderisasi', 'Syiar Umat', 'Kemuslimahan', 'Entrepreneur', 'Humas dan Media', 'PSDM', 'Sekretariat', 'Pengurus'] %}
                             {% for d in divisi_list %}
                             <option value="{{ d }}">{{ d }}</option>
                             {% endfor %}
