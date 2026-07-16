@@ -1087,7 +1087,8 @@ def tambah_proker():
     target = request.form.get('target', '')
     tanggal_mulai = request.form.get('tanggal_mulai') or None
     tanggal_selesai = request.form.get('tanggal_selesai') or None
-    anggaran = request.form.get('anggaran', 0)
+    anggaran_str = request.form.get('anggaran')
+    anggaran = float(anggaran_str) if anggaran_str else 0
     
     db.execute('''
         INSERT INTO proker (nama_proker, tipe_proker, divisi, penanggung_jawab, target, tanggal_mulai, tanggal_selesai, anggaran)
@@ -1109,7 +1110,8 @@ def edit_proker(id):
     target = request.form.get('target', '')
     tanggal_mulai = request.form.get('tanggal_mulai') or None
     tanggal_selesai = request.form.get('tanggal_selesai') or None
-    anggaran = request.form.get('anggaran', 0)
+    anggaran_str = request.form.get('anggaran')
+    anggaran = float(anggaran_str) if anggaran_str else 0
     
     db.execute('''
         UPDATE proker SET 
