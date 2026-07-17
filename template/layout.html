@@ -57,11 +57,11 @@
         <!-- Shortcut Booth Kejujuran (Global) -->
         <div class="px-3 mt-3 mb-2">
           {% if global_booth_aktif %}
-            <a href="{{ url_for('ent_booth_close', id=global_booth_aktif['id_booth']) }}" class="btn btn-warning w-100 text-start text-dark fw-bold" style="border-radius: 8px;">
+            <a href="{{ url_for('ent_booth_close', id=global_booth_aktif['id_booth']) }}" class="btn btn-primary w-100 text-start text-white fw-bold" style="border-radius: 8px; background-color: #2563eb; border:none;">
               <i class="fas fa-store-slash me-2"></i> Tutup Booth
             </a>
           {% else %}
-            <a href="{{ url_for('ent_booth_open') }}" class="btn btn-success w-100 text-start text-white fw-bold" style="border-radius: 8px; background-color: #1D9E75; border:none;">
+            <a href="{{ url_for('ent_booth_open') }}" class="btn btn-primary w-100 text-start text-white fw-bold" style="border-radius: 8px; background-color: #2563eb; border:none;">
               <i class="fas fa-store me-2"></i> Buka Booth
             </a>
           {% endif %}

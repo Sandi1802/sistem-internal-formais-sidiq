@@ -13,7 +13,7 @@
 <div class="row">
     <div class="col-lg-8">
         <div class="card shadow mb-4">
-            <div class="card-header py-3 bg-warning text-dark">
+            <div class="card-header py-3 bg-primary text-white">
                 <h6 class="m-0 font-weight-bold">Form Input Stok Sisa (Closing)</h6>
             </div>
             <div class="card-body">
@@ -26,39 +26,39 @@
                         </div>
                     </div>
 
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-1"></i> <strong>Laporan Penjualan!</strong><br>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-1"></i> <strong>Laporan Penjualan!</strong><br>
                         Silakan hitung sisa barang di kotak sekarang dan masukkan angkanya. Sistem akan otomatis menghitung jumlah barang yang terjual.
                     </div>
 
                     <div class="list-group mb-4">
                         {% for item in data_laporan['items'] %}
-                        <div class="list-group-item py-3 bg-light border-warning">
+                        <div class="list-group-item py-3 bg-light border-primary">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <strong class="fs-5 text-dark">{{ item.nama }}</strong>
-                                <span class="badge bg-secondary rounded-pill">Stok Awal: {{ item.stok_awal }}</span>
+                                <span class="badge bg-primary rounded-pill">Stok Awal: {{ item.stok_awal }}</span>
                             </div>
                             <input type="hidden" name="id_produk[]" value="{{ item.id }}">
                             <input type="hidden" name="stok_awal_{{ item.id }}" value="{{ item.stok_awal }}">
                             
                             <div class="input-group input-group-lg mt-2">
-                                <span class="input-group-text bg-warning text-dark fw-bold border-warning">Sisa Saat Ini</span>
-                                <input type="number" name="stok_sisa_{{ item.id }}" class="form-control text-center fw-bold fs-4 text-danger border-warning" value="{{ item.stok_awal }}" min="0" max="{{ item.stok_awal }}" required inputmode="numeric">
+                                <span class="input-group-text bg-primary text-white fw-bold border-primary">Sisa Saat Ini</span>
+                                <input type="number" name="stok_sisa_{{ item.id }}" class="form-control text-center fw-bold fs-4 text-primary border-primary" value="{{ item.stok_awal }}" min="0" max="{{ item.stok_awal }}" required inputmode="numeric">
                             </div>
                         </div>
                         {% endfor %}
                     </div>
 
                     <hr>
-                    <h5 class="fw-bold text-success mb-3">Setoran Uang Fisik</h5>
+                    <h5 class="fw-bold text-primary mb-3">Setoran Uang Fisik</h5>
                     <div class="mb-4">
                         <label class="form-label fw-bold">Total Uang di Kotak (Rp)</label>
-                        <input type="number" name="uang_fisik" class="form-control form-control-lg text-success fw-bold" placeholder="Contoh: 18000" required>
+                        <input type="number" name="uang_fisik" class="form-control form-control-lg text-primary fw-bold border-primary" placeholder="Contoh: 18000" required>
                         <small class="text-muted">Masukkan total uang tunai yang terkumpul di dalam kotak/toples hari ini.</small>
                     </div>
 
                     <div class="text-end">
-                        <button type="submit" class="btn btn-warning btn-lg px-5 text-dark fw-bold" onclick="return confirm('Apakah Anda yakin data sisa stok dan uang fisik sudah benar? Data akan dikunci setelah closing.');">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 text-white fw-bold" onclick="return confirm('Apakah Anda yakin data sisa stok dan uang fisik sudah benar? Data akan dikunci setelah closing.');">
                             <i class="fas fa-lock"></i> Selesai & Tutup Booth
                         </button>
                     </div>
