@@ -4,15 +4,15 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Manajemen Booth Kejujuran</h1>
+    <h1 class="h3 mb-0 text-gray-800">Kejujuran Booth</h1>
     
     <!-- Cek apakah ada booth yang sedang buka -->
     {% if booth_aktif %}
-        <a href="{{ url_for('ent_booth_close', id=booth_aktif.id_booth) }}" class="btn btn-warning">
+        <a href="{{ url_for('ent_booth_close', id=booth_aktif.id_booth) }}" class="btn btn-primary text-white">
             <i class="fas fa-store-slash me-1"></i> Tutup Booth (Closing)
         </a>
     {% else %}
-        <a href="{{ url_for('ent_booth_open') }}" class="btn btn-primary">
+        <a href="{{ url_for('ent_booth_open') }}" class="btn btn-primary text-white">
             <i class="fas fa-store me-1"></i> Buka Booth (Opening)
         </a>
     {% endif %}
